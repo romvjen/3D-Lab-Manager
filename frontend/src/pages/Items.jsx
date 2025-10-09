@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useSearchParams,Link } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from "react";
+import { useSearchParams, Link } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -12,23 +12,23 @@ import {
   Alert,
   Snackbar,
   Chip,
-  Stack
-} from '@mui/material';
+  Stack,
+} from "@mui/material";
 import {
   ViewModule as ViewModuleIcon,
   ViewList as ViewListIcon,
-  FilterList as FilterListIcon
-} from '@mui/icons-material';
+  FilterList as FilterListIcon,
+} from "@mui/icons-material";
 
 // API and constants
-import { itemsApi } from '../lib/api.js';
-import { ITEM_CATEGORIES, ITEM_STATUSES } from '../shared/types.js';
+import { itemsApi } from "../lib/api.js";
+import { ITEM_CATEGORIES, ITEM_STATUSES } from "../shared/types.js";
 
 // Components
-import SearchBar from '../components/SearchBar.jsx';
-import ItemCard from '../components/ItemCard.jsx';
-import LoadingSkeleton from '../components/LoadingSkeleton.jsx';
-import EmptyState from '../components/EmptyState.jsx';
+import SearchBar from "../components/SearchBar.jsx";
+import ItemCard from "../components/ItemCard.jsx";
+import LoadingSkeleton from "../components/LoadingSkeleton.jsx";
+import EmptyState from "../components/EmptyState.jsx";
 
 /**
  * Items Page Component
@@ -42,10 +42,14 @@ function Items() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
-  const [categoryFilter, setCategoryFilter] = useState(searchParams.get('category') || 'all');
-  const [statusFilter, setStatusFilter] = useState(searchParams.get('status') || 'all');
-  const [viewMode, setViewMode] = useState('grid');
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
+  const [categoryFilter, setCategoryFilter] = useState(
+    searchParams.get("category") || "all"
+  );
+  const [statusFilter, setStatusFilter] = useState(
+    searchParams.get("status") || "all"
+  );
+  const [viewMode, setViewMode] = useState("grid");
 
   // Debounced search implementation
   const [debouncedQuery, setDebouncedQuery] = useState(searchQuery);
@@ -67,14 +71,14 @@ function Items() {
       const filters = {
         q: debouncedQuery,
         category: categoryFilter,
-        status: statusFilter
+        status: statusFilter,
       };
 
       const data = await itemsApi.getItems(filters);
       setItems(data);
     } catch (err) {
-      console.error('Failed to fetch items:', err);
-      setError(err.message || 'Failed to load items. Please try again.');
+      console.error("Failed to fetch items:", err);
+      setError(err.message || "Failed to load items. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -84,9 +88,11 @@ function Items() {
   useEffect(() => {
     const params = new URLSearchParams();
 
-    if (debouncedQuery) params.set('q', debouncedQuery);
-    if (categoryFilter && categoryFilter !== 'all') params.set('category', categoryFilter);
-    if (statusFilter && statusFilter !== 'all') params.set('status', statusFilter);
+    if (debouncedQuery) params.set("q", debouncedQuery);
+    if (categoryFilter && categoryFilter !== "all")
+      params.set("category", categoryFilter);
+    if (statusFilter && statusFilter !== "all")
+      params.set("status", statusFilter);
 
     setSearchParams(params);
   }, [debouncedQuery, categoryFilter, statusFilter, setSearchParams]);
@@ -102,7 +108,7 @@ function Items() {
   };
 
   const handleSearchClear = () => {
-    setSearchQuery('');
+    setSearchQuery("");
   };
 
   const handleCategoryChange = (event) => {
@@ -122,9 +128,9 @@ function Items() {
   };
 
   const clearAllFilters = () => {
-    setSearchQuery('');
-    setCategoryFilter('all');
-    setStatusFilter('all');
+    setSearchQuery("");
+    setCategoryFilter("all");
+    setStatusFilter("all");
   };
 
   const handleRetry = () => {
@@ -138,58 +144,66 @@ function Items() {
   // Get active filter count for display
   const activeFilterCount = [
     debouncedQuery,
-    categoryFilter !== 'all' ? categoryFilter : null,
-    statusFilter !== 'all' ? statusFilter : null
+    categoryFilter !== "all" ? categoryFilter : null,
+    statusFilter !== "all" ? statusFilter : null,
   ].filter(Boolean).length;
 
   // Format status for display
   const formatStatus = (status) => {
-    return status.replace('_', ' ').toUpperCase();
+    return status.replace("_", " ").toUpperCase();
   };
 
   // Get status color for chips (same as ItemCard)
   const getStatusColor = (status) => {
     switch (status) {
-      case 'available':
-        return 'success';
-      case 'checked_out':
-        return 'warning';
-      case 'broken':
-        return 'error';
+      case "available":
+        return "success";
+      case "checked_out":
+        return "warning";
+      case "broken":
+        return "error";
       default:
-        return 'default';
+        return "default";
     }
   };
 
   return (
-    <Box sx={{ width: '100%', maxWidth: '100%', minHeight: '100dvh', display: 'flex', flexDirection: 'column' }}>
-        {/* Page Header */}
-        <Box sx={{ mb: 4 }}>
-          <Typography
-            variant="h1"
-            component="h1"
-            sx={{
-              fontSize: { xs: '1.75rem', md: '2.25rem' },
-              fontWeight: 700,
-              color: 'primary.main',
-              mb: 1
-            }}
-          >
-            Lab Inventory
-          </Typography>
-          <Typography
-            variant="body1"
-            sx={{
-              color: 'text.secondary',
-              fontSize: '1rem'
-            }}
-          >
-            Search and manage equipment in the Senior Design Engineering Lab
-          </Typography>
-        </Box>
+    <Box
+      sx={{
+        width: "100%",
+        maxWidth: "100%",
+        minHeight: "100dvh",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      {/* Page Header */}
+      <Box sx={{ mb: 4 }}>
+        <Typography
+          variant="h1"
+          component="h1"
+          sx={{
+            fontSize: { xs: "1.75rem", md: "2.25rem" },
+            fontWeight: 700,
+            color: "primary.main",
+            mb: 1,
+          }}
+        >
+          Lab Inventory
+        </Typography>
+        <Typography
+          variant="body1"
+          sx={{
+            color: "text.secondary",
+            fontSize: "1rem",
+          }}
+        >
+          Search and manage equipment in the Senior Design Engineering Lab
+        </Typography>
+      </Box>
 
-        {/* Search and Filters */}
-        <Box sx={{ mb: 4, width: '100%' }}>
+      {/* Search and Filters */}
+      <Box sx={{ mb: 4, width: "100%" }}>
         {/* Search Bar */}
         <Box sx={{ mb: 3 }}>
           <SearchBar
@@ -203,22 +217,22 @@ function Items() {
         {/* Filters and Controls */}
         <Box
           sx={{
-            display: 'flex',
-            flexDirection: { xs: 'column', md: 'row' },
+            display: "flex",
+            flexDirection: { xs: "column", md: "row" },
             gap: 2,
-            alignItems: { xs: 'stretch', md: 'center' },
-            justifyContent: 'space-between',
-            width: '100%',
-            maxWidth: '100%'
+            alignItems: { xs: "stretch", md: "center" },
+            justifyContent: "space-between",
+            width: "100%",
+            maxWidth: "100%",
           }}
         >
           {/* Filter Controls */}
           <Box
             sx={{
-              display: 'flex',
-              flexDirection: { xs: 'column', sm: 'row' },
+              display: "flex",
+              flexDirection: { xs: "column", sm: "row" },
               gap: 2,
-              flex: 1
+              flex: 1,
             }}
           >
             {/* Category Filter */}
@@ -250,19 +264,19 @@ function Items() {
               onChange={handleStatusChange}
               disabled={loading}
               sx={{
-                '& .MuiToggleButton-root': {
+                "& .MuiToggleButton-root": {
                   px: 2,
                   py: 1,
-                  border: '1px solid',
-                  borderColor: 'divider',
-                  '&.Mui-selected': {
-                    backgroundColor: 'primary.main',
-                    color: 'white',
-                    '&:hover': {
-                      backgroundColor: 'primary.dark'
-                    }
-                  }
-                }
+                  border: "1px solid",
+                  borderColor: "divider",
+                  "&.Mui-selected": {
+                    backgroundColor: "primary.main",
+                    color: "white",
+                    "&:hover": {
+                      backgroundColor: "primary.dark",
+                    },
+                  },
+                },
               }}
             >
               <ToggleButton value="all" aria-label="all statuses">
@@ -300,9 +314,19 @@ function Items() {
         {/* Active Filters Display */}
         {activeFilterCount > 0 && (
           <Box sx={{ mt: 2 }}>
-            <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
-              <FilterListIcon sx={{ color: 'text.secondary', fontSize: '1.25rem' }} />
-              <Typography variant="body2" sx={{ color: 'text.secondary', mr: 1 }}>
+            <Stack
+              direction="row"
+              spacing={1}
+              alignItems="center"
+              flexWrap="wrap"
+            >
+              <FilterListIcon
+                sx={{ color: "text.secondary", fontSize: "1.25rem" }}
+              />
+              <Typography
+                variant="body2"
+                sx={{ color: "text.secondary", mr: 1 }}
+              >
                 Active filters:
               </Typography>
 
@@ -316,21 +340,21 @@ function Items() {
                 />
               )}
 
-              {categoryFilter !== 'all' && (
+              {categoryFilter !== "all" && (
                 <Chip
                   label={`Category: ${categoryFilter}`}
                   size="small"
-                  onDelete={() => setCategoryFilter('all')}
+                  onDelete={() => setCategoryFilter("all")}
                   color="primary"
                   variant="outlined"
                 />
               )}
 
-              {statusFilter !== 'all' && (
+              {statusFilter !== "all" && (
                 <Chip
                   label={`Status: ${formatStatus(statusFilter)}`}
                   size="small"
-                  onDelete={() => setStatusFilter('all')}
+                  onDelete={() => setStatusFilter("all")}
                   color="primary"
                   variant="outlined"
                 />
@@ -350,43 +374,45 @@ function Items() {
       </Box>
 
       {/* Results Section */}
-      <Box sx={{
-        width: viewMode === 'list' ? '100vw' : '100%',
-        ml: viewMode === 'list' ? { xs: -2, sm: -3, md: -4 } : 0,
-        px: viewMode === 'list' ? { xs: 2, sm: 3, md: 4 } : 0,
-        overflow: 'hidden',
-        flex: '1 1 auto',
-        minHeight: 0,
-        display: 'flex',
-        flexDirection: 'column'
-      }}>
+      <Box
+        sx={{
+          width: viewMode === "list" ? "100vw" : "100%",
+          ml: viewMode === "list" ? { xs: -2, sm: -3, md: -4 } : 0,
+          px: viewMode === "list" ? { xs: 2, sm: 3, md: 4 } : 0,
+          overflow: "hidden",
+          flex: "1 1 auto",
+          minHeight: 0,
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
         {/* Results Count */}
         {!loading && !error && (
           <Typography
             variant="body2"
             sx={{
-              color: 'text.secondary',
+              color: "text.secondary",
               mb: 2,
-              fontSize: '0.875rem',
-              flexShrink: 0
+              fontSize: "0.875rem",
+              flexShrink: 0,
             }}
           >
             {items.length === 0
-              ? 'No items found'
-              : `${items.length} item${items.length === 1 ? '' : 's'} found`}
+              ? "No items found"
+              : `${items.length} item${items.length === 1 ? "" : "s"} found`}
           </Typography>
         )}
 
         {/* Loading State */}
         {loading && (
-          <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+          <Box sx={{ flex: 1, display: "flex", flexDirection: "column" }}>
             <LoadingSkeleton count={6} />
           </Box>
         )}
 
         {/* Error State */}
         {error && !loading && (
-          <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+          <Box sx={{ flex: 1, display: "flex", flexDirection: "column" }}>
             <EmptyState
               type="error"
               description={error}
@@ -398,71 +424,82 @@ function Items() {
 
         {/* Empty State */}
         {!loading && !error && items.length === 0 && (
-          <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+          <Box sx={{ flex: 1, display: "flex", flexDirection: "column" }}>
             <EmptyState
-              type={activeFilterCount > 0 ? 'empty' : 'noData'}
+              type={activeFilterCount > 0 ? "empty" : "noData"}
               onClear={activeFilterCount > 0 ? clearAllFilters : null}
             />
           </Box>
         )}
 
         {/* Items Grid / List */}
-        {!loading && !error && items.length > 0 && (
-          viewMode === 'grid' ? (
+        {!loading &&
+          !error &&
+          items.length > 0 &&
+          (viewMode === "grid" ? (
             <Box
               sx={{
                 flex: 1,
                 minHeight: 0,
-                display: 'grid',
+                display: "grid",
                 gridTemplateColumns: {
-                  xs: '1fr',
-                  sm: 'repeat(2, 1fr)',
-                  md: 'repeat(3, 1fr)',
-                  lg: 'repeat(4, 1fr)',
-                  xl: 'repeat(6, 1fr)'
+                  xs: "1fr",
+                  sm: "repeat(2, 1fr)",
+                  md: "repeat(3, 1fr)",
+                  lg: "repeat(4, 1fr)",
+                  xl: "repeat(6, 1fr)",
                 },
                 gap: 2,
-                width: '100%',
-                alignItems: 'stretch',
-                overflowY: 'auto'
+                width: "100%",
+                alignItems: "stretch",
+                overflowY: "auto",
               }}
             >
               {items.map((item) => (
-                <Box key={item.id} sx={{ display: 'flex' }}>
+                <Box key={item.id} sx={{ display: "flex" }}>
                   <ItemCard item={item} />
                 </Box>
               ))}
             </Box>
           ) : (
             // List view: fill height and allow scrolling
-            <Box sx={{ flex: 1, minHeight: 0, display: 'flex', overflowY: 'auto' }}>
-              <Stack spacing={1.5} sx={{ width: '100%', flex: 1 }}>
+            <Box
+              sx={{ flex: 1, minHeight: 0, display: "flex", overflowY: "auto" }}
+            >
+              <Stack spacing={1.5} sx={{ width: "100%", flex: 1 }}>
                 {items.map((item) => (
                   <Box
-                  component={Link}
+                    component={Link}
                     to={`/item/${item.id}`}
                     key={item.id}
                     sx={{
-                      display: 'flex',
-                      alignItems: 'center',
+                      display: "flex",
+                      alignItems: "center",
                       gap: 2,
                       p: 1.5,
-                      border: '1px solid',
-                      borderColor: 'divider',
+                      border: "1px solid",
+                      borderColor: "divider",
                       borderRadius: 1,
-                      bgcolor: 'background.paper',
-                      width: '100%'
+                      bgcolor: "background.paper",
+                      width: "100%",
                     }}
                   >
                     {/* optional thumbnail placeholder; replace with item.image if available */}
-                    <Box sx={{ flex: '0 0 56px', height: 56, borderRadius: 1, bgcolor: 'action.hover' }} />
+                    <Box
+                      sx={{
+                        flex: "0 0 56px",
+                        height: 56,
+                        borderRadius: 1,
+                        bgcolor: "action.hover",
+                      }}
+                    />
 
                     <Box sx={{ flexGrow: 1, minWidth: 0 }}>
                       <Typography variant="subtitle1" noWrap>
                         {item.name || item.title || `Item ${item.id}`}
                       </Typography>
                       <Typography variant="body2" color="text.secondary" noWrap>
-                        {(item.category || 'Uncategorized')}
+                        {item.category || "Uncategorized"}
                       </Typography>
                     </Box>
 
@@ -477,8 +514,7 @@ function Items() {
                 ))}
               </Stack>
             </Box>
-          )
-        )}
+          ))}
       </Box>
 
       {/* Error Snackbar */}
@@ -486,13 +522,9 @@ function Items() {
         open={!!error}
         autoHideDuration={6000}
         onClose={handleCloseError}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       >
-        <Alert
-          onClose={handleCloseError}
-          severity="error"
-          variant="filled"
-        >
+        <Alert onClose={handleCloseError} severity="error" variant="filled">
           {error}
         </Alert>
       </Snackbar>
