@@ -5,7 +5,6 @@ import {
   Typography,
   Button,
   Card,
-  CardContent,
   CardMedia,
   Chip,
   Grid,
@@ -14,7 +13,6 @@ import {
   Alert,
   Snackbar,
   Skeleton,
-  IconButton,
 } from "@mui/material";
 import {
   ArrowBack as ArrowBackIcon,
@@ -215,7 +213,7 @@ function ItemDetail() {
   const statusConfig = getStatusConfig(item.status);
 
   return (
-    <Box>
+    <Box sx={{ maxWidth: "1400px", mx: "auto" }}>
       {/* Breadcrumbs */}
       <Box sx={{ mb: 3 }}>
         <Breadcrumbs aria-label="breadcrumb">
@@ -241,227 +239,310 @@ function ItemDetail() {
         </Breadcrumbs>
       </Box>
 
-      {/* Header */}
-      <Box sx={{ mb: 4 }}>
-        <Box sx={{ display: "flex", alignItems: "flex-start", gap: 2, mb: 2 }}>
-          <Typography
-            variant="h1"
-            component="h1"
-            sx={{
-              fontSize: { xs: "1.5rem", md: "2rem" },
-              fontWeight: 700,
-              color: "text.primary",
-              flex: 1,
-            }}
-          >
-            {item.name}
-          </Typography>
-          <Chip
-            label={statusConfig.label}
-            color={statusConfig.color}
-            variant="filled"
-            sx={{ fontWeight: 600 }}
-          />
-        </Box>
-
-        {/* Item ID */}
-        <Typography
-          variant="body2"
-          sx={{
-            color: "text.secondary",
-            fontFamily: "monospace",
-            fontSize: "0.875rem",
-          }}
-        >
-          ID: {item.id}
-        </Typography>
-      </Box>
-
-      {/* Main Content */}
-      <Grid container spacing={4}>
-        {/* Left Column - Image and Actions */}
-        <Grid item xs={12} md={6}>
-          {/* Item Image */}
-          <Card sx={{ mb: 3, border: "1px solid", borderColor: "divider" }}>
-            <CardMedia
-              component="img"
-              height="300"
-              image={item.thumbnailUrl}
-              alt={`${item.name} image`}
+      {/* Main Content Card */}
+      <Card
+        sx={{
+          border: "1px solid",
+          borderColor: "divider",
+          overflow: "hidden",
+          boxShadow: 3,
+        }}
+      >
+        <Grid container>
+          {/* Left Column - Image */}
+          <Grid item xs={12} lg={5}>
+            <Box
               sx={{
-                objectFit: "cover",
+                position: "relative",
+                height: { xs: "400px", lg: "100%" },
+                minHeight: { lg: "600px" },
                 backgroundColor: "grey.100",
-              }}
-              onError={(e) => {
-                e.target.src = `https://via.placeholder.com/400x300/2563eb/ffffff?text=${encodeURIComponent(
-                  item.name
-                )}`;
-              }}
-            />
-          </Card>
-
-          {/* Action Buttons */}
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            <Button
-              variant="contained"
-              size="large"
-              startIcon={<OpenInNewIcon />}
-              onClick={handleOpen3D}
-              fullWidth
-              sx={{
-                py: 1.5,
-                fontWeight: 600,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
               }}
             >
-              Open in 3D Map
-            </Button>
-
-            <Button
-              variant="outlined"
-              size="large"
-              startIcon={<ReportProblemIcon />}
-              onClick={handleOpenIssueModal}
-              color="warning"
-              fullWidth
-              sx={{
-                py: 1.5,
-                fontWeight: 600,
-              }}
-            >
-              Report Issue
-            </Button>
-          </Box>
-        </Grid>
-
-        {/* Right Column - Details */}
-        <Grid item xs={12} md={6}>
-          {/* Basic Information */}
-          <Card sx={{ mb: 3, border: "1px solid", borderColor: "divider" }}>
-            <CardContent>
-              <Typography
-                variant="h6"
-                gutterBottom
-                sx={{ display: "flex", alignItems: "center", gap: 1 }}
-              >
-                <InfoIcon sx={{ fontSize: "1.25rem" }} />
-                Item Information
-              </Typography>
-
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                {/* Category */}
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <CategoryIcon
-                    sx={{ fontSize: "1.25rem", color: "text.secondary" }}
-                  />
-                  <Box>
-                    <Typography variant="body2" color="text.secondary">
-                      Category
-                    </Typography>
-                    <Chip
-                      label={item.category}
-                      variant="outlined"
-                      size="small"
-                      sx={{ mt: 0.5 }}
-                    />
-                  </Box>
-                </Box>
-
-                {/* Location */}
-                <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1 }}>
-                  <LocationIcon
-                    sx={{
-                      fontSize: "1.25rem",
-                      color: "text.secondary",
-                      mt: 0.5,
-                    }}
-                  />
-                  <Box>
-                    <Typography variant="body2" color="text.secondary">
-                      Location
-                    </Typography>
-                    <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                      {item.locationPath}
-                    </Typography>
-                  </Box>
-                </Box>
-
-                {/* Status */}
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <Box
-                    sx={{
-                      width: "1.25rem",
-                      height: "1.25rem",
-                      display: "flex",
-                      alignItems: "center",
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        width: 12,
-                        height: 12,
-                        borderRadius: "50%",
-                        backgroundColor:
-                          statusConfig.color === "success"
-                            ? "success.main"
-                            : statusConfig.color === "warning"
-                            ? "warning.main"
-                            : statusConfig.color === "error"
-                            ? "error.main"
-                            : "grey.400",
-                      }}
-                    />
-                  </Box>
-                  <Box>
-                    <Typography variant="body2" color="text.secondary">
-                      Status
-                    </Typography>
-                    <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                      {statusConfig.label}
-                    </Typography>
-                  </Box>
-                </Box>
-              </Box>
-            </CardContent>
-          </Card>
-
-          {/* QR Code Information */}
-          <Card sx={{ border: "1px solid", borderColor: "divider" }}>
-            <CardContent>
-              <Typography
-                variant="h6"
-                gutterBottom
-                sx={{ display: "flex", alignItems: "center", gap: 1 }}
-              >
-                <QrCodeIcon sx={{ fontSize: "1.25rem" }} />
-                QR Code Information
-              </Typography>
-
-              <Typography variant="body2" color="text.secondary" paragraph>
-                This item can be identified by scanning its QR code label.
-              </Typography>
-
+              <CardMedia
+                component="img"
+                image={item.thumbnailUrl}
+                alt={`${item.name} image`}
+                sx={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                }}
+                onError={(e) => {
+                  e.target.style.display = "none";
+                }}
+              />
+              {/* Fallback content */}
               <Box
                 sx={{
-                  backgroundColor: "grey.50",
-                  border: "2px dashed",
-                  borderColor: "grey.300",
-                  borderRadius: 1,
-                  p: 2,
                   textAlign: "center",
-                  fontFamily: "monospace",
+                  color: "text.secondary",
+                  p: 4,
+                  zIndex: 1,
                 }}
               >
-                <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                  {item.id}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  QR Code Data
+                <Box sx={{ fontSize: "4rem", mb: 2 }}>📦</Box>
+                <Typography variant="h6" color="text.secondary">
+                  {item.category}
                 </Typography>
               </Box>
-            </CardContent>
-          </Card>
+            </Box>
+          </Grid>
+
+          {/* Right Column - Details and Actions */}
+          <Grid item xs={12} lg={7}>
+            <Box sx={{ p: { xs: 3, md: 4, lg: 5 } }}>
+              {/* Header Section */}
+              <Box sx={{ mb: 4 }}>
+                <Box sx={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 2, mb: 2 }}>
+                  <Typography
+                    variant="h1"
+                    component="h1"
+                    sx={{
+                      fontSize: { xs: "1.75rem", md: "2.25rem" },
+                      fontWeight: 700,
+                      color: "text.primary",
+                      lineHeight: 1.2,
+                    }}
+                  >
+                    {item.name}
+                  </Typography>
+                  <Chip
+                    label={statusConfig.label}
+                    color={statusConfig.color}
+                    variant="filled"
+                    size="medium"
+                    sx={{
+                      fontWeight: 600,
+                      fontSize: "0.875rem",
+                      height: 32,
+                      flexShrink: 0,
+                    }}
+                  />
+                </Box>
+
+                <Typography
+                  variant="body1"
+                  sx={{
+                    color: "text.secondary",
+                    fontFamily: "monospace",
+                    fontSize: "0.9375rem",
+                    backgroundColor: "grey.50",
+                    display: "inline-block",
+                    px: 1.5,
+                    py: 0.5,
+                    borderRadius: 1,
+                  }}
+                >
+                  ID: {item.id}
+                </Typography>
+              </Box>
+
+              {/* Information Grid */}
+              <Box sx={{ mb: 4 }}>
+                <Typography
+                  variant="h6"
+                  sx={{
+                    mb: 3,
+                    fontWeight: 600,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1,
+                  }}
+                >
+                  <InfoIcon sx={{ fontSize: "1.25rem", color: "primary.main" }} />
+                  Item Information
+                </Typography>
+
+                <Grid container spacing={3}>
+                  {/* Category */}
+                  <Grid item xs={12} sm={6}>
+                    <Box
+                      sx={{
+                        p: 2.5,
+                        borderRadius: 2,
+                        backgroundColor: "grey.50",
+                        border: "1px solid",
+                        borderColor: "grey.200",
+                        height: "100%",
+                      }}
+                    >
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1.5 }}>
+                        <CategoryIcon sx={{ fontSize: "1.125rem", color: "primary.main" }} />
+                        <Typography variant="body2" color="text.secondary" fontWeight={500}>
+                          Category
+                        </Typography>
+                      </Box>
+                      <Chip
+                        label={item.category}
+                        variant="filled"
+                        size="medium"
+                        sx={{
+                          fontWeight: 500,
+                          backgroundColor: "primary.main",
+                          color: "white",
+                        }}
+                      />
+                    </Box>
+                  </Grid>
+
+                  {/* Status */}
+                  <Grid item xs={12} sm={6}>
+                    <Box
+                      sx={{
+                        p: 2.5,
+                        borderRadius: 2,
+                        backgroundColor: "grey.50",
+                        border: "1px solid",
+                        borderColor: "grey.200",
+                        height: "100%",
+                      }}
+                    >
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1.5 }}>
+                        <Box
+                          sx={{
+                            width: 14,
+                            height: 14,
+                            borderRadius: "50%",
+                            backgroundColor:
+                              statusConfig.color === "success"
+                                ? "success.main"
+                                : statusConfig.color === "warning"
+                                ? "warning.main"
+                                : statusConfig.color === "error"
+                                ? "error.main"
+                                : "grey.400",
+                          }}
+                        />
+                        <Typography variant="body2" color="text.secondary" fontWeight={500}>
+                          Status
+                        </Typography>
+                      </Box>
+                      <Typography variant="body1" sx={{ fontWeight: 600, fontSize: "1.125rem" }}>
+                        {statusConfig.label}
+                      </Typography>
+                    </Box>
+                  </Grid>
+
+                  {/* Location */}
+                  <Grid item xs={12}>
+                    <Box
+                      sx={{
+                        p: 2.5,
+                        borderRadius: 2,
+                        backgroundColor: "grey.50",
+                        border: "1px solid",
+                        borderColor: "grey.200",
+                      }}
+                    >
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1.5 }}>
+                        <LocationIcon sx={{ fontSize: "1.125rem", color: "primary.main" }} />
+                        <Typography variant="body2" color="text.secondary" fontWeight={500}>
+                          Location
+                        </Typography>
+                      </Box>
+                      <Typography variant="body1" sx={{ fontWeight: 600, fontSize: "1.125rem" }}>
+                        {item.locationPath}
+                      </Typography>
+                    </Box>
+                  </Grid>
+                </Grid>
+              </Box>
+
+              {/* QR Code Section */}
+              <Box sx={{ mb: 4 }}>
+                <Typography
+                  variant="h6"
+                  sx={{
+                    mb: 2,
+                    fontWeight: 600,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1,
+                  }}
+                >
+                  <QrCodeIcon sx={{ fontSize: "1.25rem", color: "primary.main" }} />
+                  QR Code
+                </Typography>
+
+                <Box
+                  sx={{
+                    backgroundColor: "grey.50",
+                    border: "2px dashed",
+                    borderColor: "primary.main",
+                    borderRadius: 2,
+                    p: 3,
+                    textAlign: "center",
+                  }}
+                >
+                  <Typography
+                    variant="h4"
+                    sx={{
+                      fontWeight: 700,
+                      fontFamily: "monospace",
+                      color: "primary.main",
+                      mb: 0.5,
+                    }}
+                  >
+                    {item.id}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Scan this item's QR code label
+                  </Typography>
+                </Box>
+              </Box>
+
+              {/* Action Buttons */}
+              <Box sx={{ display: "flex", gap: 2, flexDirection: { xs: "column", sm: "row" } }}>
+                <Button
+                  variant="contained"
+                  size="large"
+                  startIcon={<OpenInNewIcon />}
+                  onClick={handleOpen3D}
+                  fullWidth
+                  sx={{
+                    py: 1.75,
+                    fontWeight: 600,
+                    fontSize: "1rem",
+                    boxShadow: 2,
+                    "&:hover": {
+                      boxShadow: 4,
+                    },
+                  }}
+                >
+                  Open in 3D Map
+                </Button>
+
+                <Button
+                  variant="outlined"
+                  size="large"
+                  startIcon={<ReportProblemIcon />}
+                  onClick={handleOpenIssueModal}
+                  color="warning"
+                  fullWidth
+                  sx={{
+                    py: 1.75,
+                    fontWeight: 600,
+                    fontSize: "1rem",
+                    borderWidth: 2,
+                    "&:hover": {
+                      borderWidth: 2,
+                    },
+                  }}
+                >
+                  Report Issue
+                </Button>
+              </Box>
+            </Box>
+          </Grid>
         </Grid>
-      </Grid>
+      </Card>
 
       {/* Issue Reporting Modal */}
       <IssueModal
