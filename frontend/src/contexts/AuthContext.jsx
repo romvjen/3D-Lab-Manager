@@ -35,7 +35,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   // Login function
-  const login = async (email, password) => {
+  const login = async (email, password, role = 'viewer') => {
     // TODO: Replace with Supabase authentication
     // For now, simulate login
     const mockUser = {
@@ -43,6 +43,7 @@ export const AuthProvider = ({ children }) => {
       email: email,
       firstName: 'Demo',
       lastName: 'User',
+      role: role, // Add role support
     };
 
     setUser(mockUser);
@@ -59,6 +60,7 @@ export const AuthProvider = ({ children }) => {
       email: userData.email,
       firstName: userData.firstName,
       lastName: userData.lastName,
+      role: userData.role || 'viewer',
     };
 
     setUser(mockUser);
@@ -73,12 +75,22 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('user');
   };
 
+  // Change role (for testing/demo purposes)
+  const changeRole = (newRole) => {
+    if (user) {
+      const updatedUser = { ...user, role: newRole };
+      setUser(updatedUser);
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+    }
+  };
+
   const value = {
     user,
     loading,
     login,
     signup,
     logout,
+    changeRole,
     isAuthenticated: !!user,
   };
 

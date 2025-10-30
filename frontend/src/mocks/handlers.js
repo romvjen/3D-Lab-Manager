@@ -1,5 +1,6 @@
 import { http, HttpResponse, delay } from 'msw';
 import { mockItems } from './data.js';
+import { adminHandlers } from './adminHandlers.js';
 
 // Simulate network latency and occasional failures
 const simulateNetworkConditions = async () => {
@@ -14,6 +15,8 @@ const simulateNetworkConditions = async () => {
 };
 
 export const handlers = [
+  // Admin handlers
+  ...adminHandlers,
   // Allow image requests and placeholder services to pass through without interception
   http.get(/\.(jpg|jpeg|png|gif|svg|webp)(\?.*)?$/i, () => {
     return; // Pass through to actual network

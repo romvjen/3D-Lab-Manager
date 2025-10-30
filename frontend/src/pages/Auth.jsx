@@ -14,7 +14,12 @@ import {
   Alert,
   Link,
   Tabs,
-  Tab
+  Tab,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Chip
 } from '@mui/material';
 import {
   Visibility,
@@ -48,7 +53,8 @@ function Auth() {
   // Form state for login
   const [loginForm, setLoginForm] = useState({
     email: '',
-    password: ''
+    password: '',
+    role: 'admin' // For testing/demo
   });
 
   // Form state for signup
@@ -57,7 +63,8 @@ function Auth() {
     lastName: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    role: 'viewer' // For testing/demo
   });
 
   // Handle tab change
@@ -106,10 +113,15 @@ function Auth() {
 
     try {
       // Use auth context login (will be connected to Supabase later)
-      const result = await login(loginForm.email, loginForm.password);
+      const result = await login(loginForm.email, loginForm.password, loginForm.role);
 
       if (result.success) {
-        navigate('/');
+        // Redirect based on role
+        if (loginForm.role === 'admin' || loginForm.role === 'labManager') {
+          navigate('/admin/items');
+        } else {
+          navigate('/');
+        }
       } else {
         setError(result.error || 'Login failed. Please try again.');
       }
@@ -330,6 +342,24 @@ function Auth() {
                     'aria-label': 'Password'
                   }}
                 />
+
+                <FormControl fullWidth>
+                  <InputLabel>Role (Demo/Testing)</InputLabel>
+                  <Select
+                    value={loginForm.role}
+                    label="Role (Demo/Testing)"
+                    onChange={handleLoginChange('role')}
+                  >
+                    <MenuItem value="admin">Administrator</MenuItem>
+                    <MenuItem value="labManager">Lab Manager</MenuItem>
+                    <MenuItem value="staff">Staff</MenuItem>
+                    <MenuItem value="viewer">Viewer</MenuItem>
+                  </Select>
+                </FormControl>
+
+                <Alert severity="info" sx={{ fontSize: '0.875rem' }}>
+                  <strong>Demo Mode:</strong> Select a role to test different permission levels. Admin and Lab Manager roles have access to the admin panel.
+                </Alert>
 
                 <Button
                   type="submit"

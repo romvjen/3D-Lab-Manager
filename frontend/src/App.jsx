@@ -17,7 +17,8 @@ if (import.meta.env.DEV) {
 import TopNav from "./components/TopNav.jsx";
 import Footer from "./components/Footer.jsx";
 import ProtectedRoute from './components/ProtectedRoute';
-
+import AdminLayout from './components/admin/AdminLayout';
+import AdminProtectedRoute from './components/admin/AdminProtectedRoute';
 
 // Pages
 import Home from "./pages/Home.jsx";
@@ -27,6 +28,14 @@ import Map3d from "./pages/Map3d.jsx"; // Adding 3D viewer page
 import Map3dIndex from "./pages/Map3dIndex.jsx"; // Adding 3D lab grid page
 import Auth from './pages/Auth';
 import Scan from "./pages/Scan.jsx";
+
+// Admin Pages
+import ItemsAdmin from './pages/admin/ItemsAdmin';
+import UsersAdmin from './pages/admin/UsersAdmin';
+import LabsAdmin from './pages/admin/LabsAdmin';
+import IssuesAdmin from './pages/admin/IssuesAdmin';
+import ReportsAdmin from './pages/admin/ReportsAdmin';
+import SettingsAdmin from './pages/admin/SettingsAdmin';
 
 
 // Material-UI theme configuration matching university standards
@@ -106,49 +115,72 @@ function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Router>
-        <Box
-          sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}
-        >
-          {/* Main navigation */}
-          <TopNav />
-
-          {/* Main content area */}
-          <Box
-            component="main"
-            id="main-content"
-            sx={{
-              flex: 1,
-              py: { xs: 2, md: 4 },
-            }}
+        <Routes>
+          {/* Admin Routes with Admin Layout */}
+          <Route
+            path="/admin"
+            element={
+              <AdminProtectedRoute>
+                <AdminLayout />
+              </AdminProtectedRoute>
+            }
           >
-            <Container
-              maxWidth={false}
-              disableGutters
-              sx={{
-                flex: 1,
-                display: "flex",
-                flexDirection: "column",
-                minHeight: 0,
-                px: { xs: 2, sm: 3, md: 4 },
-              }}
-            >
-              <Routes>
-                <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
-                <Route path="/items" element={<ProtectedRoute><Items /></ProtectedRoute>} />
-                <Route path="/item/:id" element={<ProtectedRoute><ItemDetail /></ProtectedRoute>} />
-                <Route path="/map3d" element={<ProtectedRoute><Map3dIndex /></ProtectedRoute>} />
-                <Route path="/map3d/:labId" element={<ProtectedRoute><Map3d /></ProtectedRoute>} />
-                { <Route path="/scan" element={<ProtectedRoute><Scan /></ProtectedRoute>} /> }
-                <Route path="/auth" element={<Auth />} />
+            <Route path="items" element={<ItemsAdmin />} />
+            <Route path="users" element={<UsersAdmin />} />
+            <Route path="labs" element={<LabsAdmin />} />
+            <Route path="issues" element={<IssuesAdmin />} />
+            <Route path="reports" element={<ReportsAdmin />} />
+            <Route path="settings" element={<SettingsAdmin />} />
+          </Route>
 
+          {/* Public/User Routes with Main Layout */}
+          <Route
+            path="*"
+            element={
+              <Box
+                sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}
+              >
+                {/* Main navigation */}
+                <TopNav />
 
-              </Routes>
-            </Container>
-          </Box>
+                {/* Main content area */}
+                <Box
+                  component="main"
+                  id="main-content"
+                  sx={{
+                    flex: 1,
+                    py: { xs: 2, md: 4 },
+                  }}
+                >
+                  <Container
+                    maxWidth={false}
+                    disableGutters
+                    sx={{
+                      flex: 1,
+                      display: "flex",
+                      flexDirection: "column",
+                      minHeight: 0,
+                      px: { xs: 2, sm: 3, md: 4 },
+                    }}
+                  >
+                    <Routes>
+                      <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+                      <Route path="/items" element={<ProtectedRoute><Items /></ProtectedRoute>} />
+                      <Route path="/item/:id" element={<ProtectedRoute><ItemDetail /></ProtectedRoute>} />
+                      <Route path="/map3d" element={<ProtectedRoute><Map3dIndex /></ProtectedRoute>} />
+                      <Route path="/map3d/:labId" element={<ProtectedRoute><Map3d /></ProtectedRoute>} />
+                      <Route path="/scan" element={<ProtectedRoute><Scan /></ProtectedRoute>} />
+                      <Route path="/auth" element={<Auth />} />
+                    </Routes>
+                  </Container>
+                </Box>
 
-          {/* Footer */}
-          <Footer />
-        </Box>
+                {/* Footer */}
+                <Footer />
+              </Box>
+            }
+          />
+        </Routes>
       </Router>
     </ThemeProvider>
   );
