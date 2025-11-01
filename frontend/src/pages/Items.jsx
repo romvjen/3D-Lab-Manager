@@ -476,40 +476,183 @@ function Items() {
                       display: "flex",
                       alignItems: "center",
                       gap: 2,
-                      p: 1.5,
+                      p: 2,
                       border: "1px solid",
                       borderColor: "divider",
-                      borderRadius: 1,
+                      borderRadius: 2,
                       bgcolor: "background.paper",
                       width: "100%",
+                      textDecoration: "none",
+                      color: "inherit",
+                      transition: "all 0.2s ease-in-out",
+                      "&:hover": {
+                        boxShadow: 2,
+                        borderColor: "primary.light",
+                        textDecoration: "none",
+                      },
+                      "&:focus-visible": {
+                        outline: "2px solid",
+                        outlineColor: "primary.main",
+                        outlineOffset: "2px",
+                      },
                     }}
                   >
-                    {/* optional thumbnail placeholder; replace with item.image if available */}
+                    {/* Thumbnail with same styling as card view */}
                     <Box
                       sx={{
-                        flex: "0 0 56px",
-                        height: 56,
+                        flex: "0 0 80px",
+                        height: 80,
                         borderRadius: 1,
-                        bgcolor: "action.hover",
+                        bgcolor: "grey.100",
+                        position: "relative",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        overflow: "hidden",
                       }}
-                    />
+                    >
+                      <Box
+                        component="img"
+                        src={item.thumbnailUrl}
+                        alt={`${item.name} thumbnail`}
+                        sx={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                          position: "absolute",
+                          top: 0,
+                          left: 0,
+                        }}
+                        onError={(e) => {
+                          e.target.style.display = "none";
+                        }}
+                      />
+                      {/* Fallback icon */}
+                      <Box
+                        sx={{
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: "text.secondary",
+                        }}
+                      >
+                        <Box
+                          component="span"
+                          sx={{
+                            fontSize: "1.5rem",
+                            opacity: 0.6,
+                          }}
+                        >
+                          📦
+                        </Box>
+                        <Typography
+                          variant="caption"
+                          sx={{ fontSize: "0.65rem", mt: 0.5 }}
+                        >
+                          {item.category}
+                        </Typography>
+                      </Box>
+                    </Box>
 
-                    <Box sx={{ flexGrow: 1, minWidth: 0 }}>
-                      <Typography variant="subtitle1" noWrap>
+                    {/* Item ID and Name */}
+                    <Box sx={{ flexGrow: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 0.5 }}>
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          color: "text.secondary",
+                          fontSize: "0.75rem",
+                          fontFamily: "monospace",
+                        }}
+                      >
+                        {item.id}
+                      </Typography>
+                      <Typography
+                        variant="subtitle1"
+                        sx={{
+                          fontWeight: 600,
+                          fontSize: "1rem",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
                         {item.name || item.title || `Item ${item.id}`}
                       </Typography>
-                      <Typography variant="body2" color="text.secondary" noWrap>
-                        {item.category || "Uncategorized"}
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                        <Chip
+                          label={item.category || "Uncategorized"}
+                          variant="outlined"
+                          size="small"
+                          sx={{ fontSize: "0.7rem", height: 22 }}
+                        />
+                      </Box>
+                    </Box>
+
+                    {/* Location */}
+                    <Box
+                      sx={{
+                        display: { xs: "none", md: "flex" },
+                        alignItems: "center",
+                        gap: 0.5,
+                        minWidth: 200,
+                        maxWidth: 250,
+                      }}
+                    >
+                      <Box
+                        component="span"
+                        sx={{
+                          fontSize: "1rem",
+                          color: "text.secondary",
+                          flexShrink: 0,
+                        }}
+                      >
+                        📍
+                      </Box>
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          color: "text.secondary",
+                          fontSize: "0.875rem",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {item.locationPath}
                       </Typography>
                     </Box>
 
-                    {item.status && (
-                      <Chip
-                        label={formatStatus(item.status)}
-                        color={getStatusColor(item.status)}
-                        size="small"
-                      />
-                    )}
+                    {/* Status and View Details */}
+                    <Box
+                      sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "flex-end",
+                        gap: 1,
+                        minWidth: 120,
+                      }}
+                    >
+                      {item.status && (
+                        <Chip
+                          label={formatStatus(item.status)}
+                          color={getStatusColor(item.status)}
+                          size="small"
+                          sx={{ fontSize: "0.7rem" }}
+                        />
+                      )}
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          color: "primary.main",
+                          fontSize: "0.8125rem",
+                          fontWeight: 500,
+                          display: { xs: "none", sm: "block" },
+                        }}
+                      >
+                        View Details →
+                      </Typography>
+                    </Box>
                   </Box>
                 ))}
               </Stack>

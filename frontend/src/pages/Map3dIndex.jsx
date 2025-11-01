@@ -14,7 +14,7 @@ import {
   Chip,
 } from "@mui/material";
 
-export default function Maps() {
+export default function Map3dIndex() {
   return (
     <Box
       sx={{
