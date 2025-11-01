@@ -3,7 +3,7 @@ export const LABS = [
     id: "erb_202",
     name: "ERB 202",
     blurb: "Senior Design Lab",
-    modelPath: "/models/erb_202.glb",
+    modelPath: "/models/no_origin_202.glb",
     thumb: "/images/erb_202.png",
   },
 
@@ -11,7 +11,7 @@ export const LABS = [
     id: "erb_203",
     name: "ERB 203",
     blurb: "Senior Design Lab",
-    modelPath: "/models/erb_202.glb",
+    modelPath: "/models/no_origin_202.glb",
     thumb: "/images/erb_202.png",
   },
 
@@ -19,7 +19,7 @@ export const LABS = [
     id: "erb_207",
     name: "ERB 207",
     blurb: "Senior Design Lab",
-    modelPath: "/models/erb_202.glb",
+    modelPath: "/models/no_origin_202.glb",
     thumb: "/images/erb_202.png",
   },
 
@@ -27,7 +27,7 @@ export const LABS = [
     id: "erb_208",
     name: "ERB 208",
     blurb: "Senior Design Lab",
-    modelPath: "/models/erb_202.glb",
+    modelPath: "/models/no_origin_202.glb",
     thumb: "/images/erb_202.png",
   },
 ];
