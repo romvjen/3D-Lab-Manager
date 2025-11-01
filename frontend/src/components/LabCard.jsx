@@ -43,7 +43,7 @@ export default function LabCard({ lab }) {
       <Box
         sx={{
           position: "relative",
-          height: 150,
+          height: 200,
           flexShrink: 0,
           bgcolor: "grey.100",
         }}
@@ -73,7 +73,7 @@ export default function LabCard({ lab }) {
           flex: "1 1 auto",
           display: "flex",
           flexDirection: "column",
-          gap: 1,
+          gap: 0,
           p: 2,
         }}
       >
@@ -81,7 +81,7 @@ export default function LabCard({ lab }) {
           variant="h6"
           component="h3"
           sx={{
-            fontSize: "0.95rem",
+            fontSize: "0.98rem",
             fontWeight: 600,
             color: "text.primary",
             lineHeight: 1.2,

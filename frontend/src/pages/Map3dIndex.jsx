@@ -46,7 +46,7 @@ export default function Maps() {
             fontSize: "1rem",
           }}
         >
-          Choose a lab to visualize the layout and locate equipment in 3D space
+          Choose a lab to visualize its layout and locate equipment in 3D space
         </Typography>
       </Box>
 
