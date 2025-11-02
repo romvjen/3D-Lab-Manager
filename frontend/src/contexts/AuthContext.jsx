@@ -1,98 +1,81 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-
-/**
- * Authentication Context
- * Provides authentication state and methods throughout the app
- * TODO: Connect to Supabase authentication when backend is ready
- */
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { supabase } from "../lib/supabase";
 
 const AuthContext = createContext(null);
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
+export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Check for existing session on mount
+  // Restore session on refresh
   useEffect(() => {
-    const checkAuth = () => {
-      // TODO: Replace with Supabase session check
-      const storedUser = localStorage.getItem('user');
-      if (storedUser) {
-        setUser(JSON.parse(storedUser));
-      }
+    const init = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      setUser(session?.user || null);
       setLoading(false);
     };
 
-    checkAuth();
+    init();
+
+    // Listen for login/logout
+    const { data: listener } = supabase.auth.onAuthStateChange((_, session) =>
+      setUser(session?.user || null)
+    );
+
+    return () => listener.subscription.unsubscribe();
   }, []);
 
-  // Login function
-  const login = async (email, password, role = 'viewer') => {
-    // TODO: Replace with Supabase authentication
-    // For now, simulate login
-    const mockUser = {
-      id: '1',
-      email: email,
-      firstName: 'Demo',
-      lastName: 'User',
-      role: role, // Add role support
-    };
-
-    setUser(mockUser);
-    localStorage.setItem('user', JSON.stringify(mockUser));
+  const login = async (email, password) => {
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    if (error) return { success: false, error: error.message };
     return { success: true };
   };
 
-  // Signup function
-  const signup = async (userData) => {
-    // TODO: Replace with Supabase authentication
-    // For now, simulate signup
-    const mockUser = {
-      id: '1',
-      email: userData.email,
-      firstName: userData.firstName,
-      lastName: userData.lastName,
-      role: userData.role || 'viewer',
-    };
+  const signup = async ({ firstName, lastName, email, password }) => {
+    // Create Auth Account
+    const { data, error } = await supabase.auth.signUp({ email, password });
+    if (error) return { success: false, error: error.message };
 
-    setUser(mockUser);
-    localStorage.setItem('user', JSON.stringify(mockUser));
+    const authUser = data?.user;
+    if (!authUser) return { success: false, error: "Signup failed." };
+
+    // Insert user into profiles table
+    const fullName = `${firstName} ${lastName}`.trim();
+    await supabase.from("profiles").upsert({
+      id: authUser.id,
+      full_name: fullName,
+      role: "student",
+    });
+
     return { success: true };
   };
 
-  // Logout function
-  const logout = () => {
-    // TODO: Replace with Supabase sign out
+  //
+  const logout = async () => {
+    await supabase.auth.signOut();
     setUser(null);
-    localStorage.removeItem('user');
   };
 
-  // Change role (for testing/demo purposes)
-  const changeRole = (newRole) => {
-    if (user) {
-      const updatedUser = { ...user, role: newRole };
-      setUser(updatedUser);
-      localStorage.setItem('user', JSON.stringify(updatedUser));
-    }
-  };
-
-  const value = {
-    user,
-    loading,
-    login,
-    signup,
-    logout,
-    changeRole,
-    isAuthenticated: !!user,
-  };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        isAuthenticated: !!user,
+        login,
+        signup,
+        logout,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 };

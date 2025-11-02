@@ -21,7 +21,8 @@ import {
 } from "@mui/icons-material";
 
 // API and constants
-import { itemsApi } from "../lib/api.js";
+//import { itemsApi } from "../lib/api.js";
+import { getEquipment } from "../lib/supabaseItems.js";
 import { ITEM_CATEGORIES, ITEM_STATUSES } from "../shared/types.js";
 
 // Components
@@ -68,17 +69,17 @@ function Items() {
       setLoading(true);
       setError(null);
 
-      const filters = {
+      // Fetch filtered results directly from Supabase
+      const data = await getEquipment({
         q: debouncedQuery,
         category: categoryFilter,
         status: statusFilter,
-      };
+      });
 
-      const data = await itemsApi.getItems(filters);
       setItems(data);
     } catch (err) {
       console.error("Failed to fetch items:", err);
-      setError(err.message || "Failed to load items. Please try again.");
+      setError("Failed to load items from database.");
     } finally {
       setLoading(false);
     }
@@ -556,7 +557,15 @@ function Items() {
                     </Box>
 
                     {/* Item ID and Name */}
-                    <Box sx={{ flexGrow: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 0.5 }}>
+                    <Box
+                      sx={{
+                        flexGrow: 1,
+                        minWidth: 0,
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 0.5,
+                      }}
+                    >
                       <Typography
                         variant="body2"
                         sx={{
@@ -579,7 +588,9 @@ function Items() {
                       >
                         {item.name || item.title || `Item ${item.id}`}
                       </Typography>
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                      >
                         <Chip
                           label={item.category || "Uncategorized"}
                           variant="outlined"

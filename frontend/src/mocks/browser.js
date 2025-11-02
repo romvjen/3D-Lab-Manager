@@ -1,5 +1,5 @@
-import { setupWorker } from 'msw/browser';
-import { handlers } from './handlers.js';
+import { setupWorker } from "msw/browser";
+import { handlers } from "./handlers.js";
 
 // Setup MSW service worker for browser environment
 export const worker = setupWorker(...handlers);
@@ -9,15 +9,15 @@ export const startWorker = async () => {
   if (import.meta.env.DEV) {
     try {
       await worker.start({
-        onUnhandledRequest: 'bypass',
+        onUnhandledRequest: "bypass",
         serviceWorker: {
-          url: '/mockServiceWorker.js',
+          url: "/mockServiceWorker.js",
         },
       });
-      console.log('🔧 MSW Service Worker started successfully');
+      console.log("🔧 MSW Service Worker started successfully");
       return true;
     } catch (error) {
-      console.error('❌ Failed to start MSW Service Worker:', error);
+      console.error("❌ Failed to start MSW Service Worker:", error);
       return false;
     }
   }
@@ -25,6 +25,8 @@ export const startWorker = async () => {
 };
 
 // Auto-start in development
+/*
 if (import.meta.env.DEV) {
   startWorker();
 }
+*/

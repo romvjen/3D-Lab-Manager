@@ -25,7 +25,8 @@ import {
 } from "@mui/icons-material";
 
 // API and components
-import { itemsApi } from "../lib/api";
+//import { itemsApi } from "../lib/api";
+import { getEquipmentById } from "../lib/supabaseItems.js";
 import IssueModal from "../components/IssueModal";
 import EmptyState from "../components/EmptyState";
 
@@ -58,13 +59,19 @@ function ItemDetail() {
       try {
         setLoading(true);
         setError(null);
-        const data = await itemsApi.getItem(id);
+
+        const data = await getEquipmentById(id);
+
+        if (!data) {
+          setItem(null);
+          setError("Item not found in database.");
+          return;
+        }
+
         setItem(data);
       } catch (err) {
         console.error("Failed to fetch item:", err);
-        setError(
-          err.message || "Failed to load item details. Please try again."
-        );
+        setError("Failed to load item details from database.");
       } finally {
         setLoading(false);
       }
@@ -300,7 +307,15 @@ function ItemDetail() {
             <Box sx={{ p: { xs: 3, md: 4, lg: 5 } }}>
               {/* Header Section */}
               <Box sx={{ mb: 4 }}>
-                <Box sx={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 2, mb: 2 }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "flex-start",
+                    justifyContent: "space-between",
+                    gap: 2,
+                    mb: 2,
+                  }}
+                >
                   <Typography
                     variant="h1"
                     component="h1"
@@ -356,7 +371,9 @@ function ItemDetail() {
                     gap: 1,
                   }}
                 >
-                  <InfoIcon sx={{ fontSize: "1.25rem", color: "primary.main" }} />
+                  <InfoIcon
+                    sx={{ fontSize: "1.25rem", color: "primary.main" }}
+                  />
                   Item Information
                 </Typography>
 
@@ -373,9 +390,22 @@ function ItemDetail() {
                         height: "100%",
                       }}
                     >
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1.5 }}>
-                        <CategoryIcon sx={{ fontSize: "1.125rem", color: "primary.main" }} />
-                        <Typography variant="body2" color="text.secondary" fontWeight={500}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 1,
+                          mb: 1.5,
+                        }}
+                      >
+                        <CategoryIcon
+                          sx={{ fontSize: "1.125rem", color: "primary.main" }}
+                        />
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          fontWeight={500}
+                        >
                           Category
                         </Typography>
                       </Box>
@@ -404,7 +434,14 @@ function ItemDetail() {
                         height: "100%",
                       }}
                     >
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1.5 }}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 1,
+                          mb: 1.5,
+                        }}
+                      >
                         <Box
                           sx={{
                             width: 14,
@@ -420,11 +457,18 @@ function ItemDetail() {
                                 : "grey.400",
                           }}
                         />
-                        <Typography variant="body2" color="text.secondary" fontWeight={500}>
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          fontWeight={500}
+                        >
                           Status
                         </Typography>
                       </Box>
-                      <Typography variant="body1" sx={{ fontWeight: 600, fontSize: "1.125rem" }}>
+                      <Typography
+                        variant="body1"
+                        sx={{ fontWeight: 600, fontSize: "1.125rem" }}
+                      >
                         {statusConfig.label}
                       </Typography>
                     </Box>
@@ -441,13 +485,29 @@ function ItemDetail() {
                         borderColor: "grey.200",
                       }}
                     >
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1.5 }}>
-                        <LocationIcon sx={{ fontSize: "1.125rem", color: "primary.main" }} />
-                        <Typography variant="body2" color="text.secondary" fontWeight={500}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 1,
+                          mb: 1.5,
+                        }}
+                      >
+                        <LocationIcon
+                          sx={{ fontSize: "1.125rem", color: "primary.main" }}
+                        />
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          fontWeight={500}
+                        >
                           Location
                         </Typography>
                       </Box>
-                      <Typography variant="body1" sx={{ fontWeight: 600, fontSize: "1.125rem" }}>
+                      <Typography
+                        variant="body1"
+                        sx={{ fontWeight: 600, fontSize: "1.125rem" }}
+                      >
                         {item.locationPath}
                       </Typography>
                     </Box>
@@ -467,7 +527,9 @@ function ItemDetail() {
                     gap: 1,
                   }}
                 >
-                  <QrCodeIcon sx={{ fontSize: "1.25rem", color: "primary.main" }} />
+                  <QrCodeIcon
+                    sx={{ fontSize: "1.25rem", color: "primary.main" }}
+                  />
                   QR Code
                 </Typography>
 
@@ -499,7 +561,13 @@ function ItemDetail() {
               </Box>
 
               {/* Action Buttons */}
-              <Box sx={{ display: "flex", gap: 2, flexDirection: { xs: "column", sm: "row" } }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  gap: 2,
+                  flexDirection: { xs: "column", sm: "row" },
+                }}
+              >
                 <Button
                   variant="contained"
                   size="large"
