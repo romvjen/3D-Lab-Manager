@@ -18,14 +18,20 @@ import {
   Alert,
   IconButton,
   CardMedia,
+  Paper,
+  LinearProgress,
 } from '@mui/material';
 import {
   Edit as EditIcon,
   Delete as DeleteIcon,
   Add as AddIcon,
   Science as ScienceIcon,
+  CloudUpload as CloudUploadIcon,
+  Image as ImageIcon,
+  ViewInAr as ViewInArIcon,
 } from '@mui/icons-material';
 import { getLabs, createLab, updateLab, deleteLab } from '../../lib/supabaseLabs';
+import { uploadLabModel, uploadLabThumbnail } from '../../lib/supabaseStorage';
 
 const LabsAdmin = () => {
   const [labs, setLabs] = useState([]);
@@ -41,6 +47,10 @@ const LabsAdmin = () => {
     modelPath: '',
     thumbnailUrl: '',
   });
+  const [modelFile, setModelFile] = useState(null);
+  const [thumbnailFile, setThumbnailFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState({ model: false, thumbnail: false });
   const [formErrors, setFormErrors] = useState({});
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
@@ -70,6 +80,8 @@ const LabsAdmin = () => {
       modelPath: '',
       thumbnailUrl: '',
     });
+    setModelFile(null);
+    setThumbnailFile(null);
     setFormErrors({});
     setDialogOpen(true);
   };
@@ -83,6 +95,8 @@ const LabsAdmin = () => {
       modelPath: lab.modelPath || '',
       thumbnailUrl: lab.thumbnailUrl || '',
     });
+    setModelFile(null);
+    setThumbnailFile(null);
     setFormErrors({});
     setDialogOpen(true);
   };
@@ -95,12 +109,39 @@ const LabsAdmin = () => {
   const handleDialogClose = () => {
     setDialogOpen(false);
     setCurrentLab(null);
+    setModelFile(null);
+    setThumbnailFile(null);
     setFormErrors({});
   };
 
   const handleDeleteDialogClose = () => {
     setDeleteDialogOpen(false);
     setLabToDelete(null);
+  };
+
+  const handleModelFileChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      if (!file.name.toLowerCase().endsWith('.glb')) {
+        showSnackbar('Please select a .glb file', 'error');
+        return;
+      }
+      setModelFile(file);
+      setFormErrors({ ...formErrors, modelPath: null });
+    }
+  };
+
+  const handleThumbnailFileChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+      if (!validTypes.includes(file.type)) {
+        showSnackbar('Please select a JPG, PNG, or WebP image', 'error');
+        return;
+      }
+      setThumbnailFile(file);
+      setFormErrors({ ...formErrors, thumbnailUrl: null });
+    }
   };
 
   const validateForm = () => {
@@ -115,11 +156,23 @@ const LabsAdmin = () => {
     if (!formData.blurb.trim()) {
       errors.blurb = 'Description is required';
     }
-    if (!formData.modelPath.trim()) {
-      errors.modelPath = 'Model path is required';
-    }
-    if (!formData.thumbnailUrl.trim()) {
-      errors.thumbnailUrl = 'Thumbnail URL is required';
+
+    // For new labs, require file uploads
+    if (!currentLab) {
+      if (!modelFile) {
+        errors.modelPath = '3D model file is required';
+      }
+      if (!thumbnailFile) {
+        errors.thumbnailUrl = 'Thumbnail image is required';
+      }
+    } else {
+      // For updates, files are optional (keep existing if not provided)
+      if (!modelFile && !formData.modelPath) {
+        errors.modelPath = '3D model is required';
+      }
+      if (!thumbnailFile && !formData.thumbnailUrl) {
+        errors.thumbnailUrl = 'Thumbnail is required';
+      }
     }
 
     setFormErrors(errors);
@@ -131,26 +184,63 @@ const LabsAdmin = () => {
       return;
     }
 
+    setUploading(true);
+
     try {
+      let modelPath = formData.modelPath;
+      let thumbnailUrl = formData.thumbnailUrl;
+
+      // Upload model file if new file selected
+      if (modelFile) {
+        setUploadProgress({ ...uploadProgress, model: true });
+        const modelResult = await uploadLabModel(modelFile);
+        if (!modelResult.success) {
+          showSnackbar(`Model upload failed: ${modelResult.error}`, 'error');
+          setUploading(false);
+          setUploadProgress({ ...uploadProgress, model: false });
+          return;
+        }
+        modelPath = modelResult.url;
+      }
+
+      // Upload thumbnail if new file selected
+      if (thumbnailFile) {
+        setUploadProgress({ ...uploadProgress, thumbnail: true });
+        const thumbnailResult = await uploadLabThumbnail(thumbnailFile);
+        if (!thumbnailResult.success) {
+          showSnackbar(`Thumbnail upload failed: ${thumbnailResult.error}`, 'error');
+          setUploading(false);
+          setUploadProgress({ ...uploadProgress, thumbnail: false });
+          return;
+        }
+        thumbnailUrl = thumbnailResult.url;
+      }
+
+      // Create or update lab with uploaded URLs
+      const labData = {
+        id: formData.id,
+        name: formData.name,
+        blurb: formData.blurb,
+        modelPath,
+        thumbnailUrl,
+      };
+
       if (currentLab) {
-        // Update existing lab
-        await updateLab(currentLab.id, {
-          name: formData.name,
-          blurb: formData.blurb,
-          modelPath: formData.modelPath,
-          thumbnailUrl: formData.thumbnailUrl,
-        });
+        await updateLab(currentLab.id, labData);
         showSnackbar('Lab updated successfully', 'success');
       } else {
-        // Create new lab
-        await createLab(formData);
+        await createLab(labData);
         showSnackbar('Lab created successfully', 'success');
       }
+
       fetchLabs();
       handleDialogClose();
     } catch (error) {
       console.error('Failed to save lab:', error);
       showSnackbar(error.message || 'Failed to save lab', 'error');
+    } finally {
+      setUploading(false);
+      setUploadProgress({ model: false, thumbnail: false });
     }
   };
 
@@ -282,7 +372,7 @@ const LabsAdmin = () => {
           {currentLab ? 'Edit Lab' : 'Add New Lab'}
         </DialogTitle>
         <DialogContent>
-          <Stack spacing={2} sx={{ mt: 1 }}>
+          <Stack spacing={3} sx={{ mt: 1 }}>
             <TextField
               label="Lab ID"
               fullWidth
@@ -313,32 +403,121 @@ const LabsAdmin = () => {
               helperText={formErrors.blurb || 'e.g., Senior Design Lab'}
               required
             />
-            <TextField
-              label="Model Path"
-              fullWidth
-              value={formData.modelPath}
-              onChange={(e) => setFormData({ ...formData, modelPath: e.target.value })}
-              error={!!formErrors.modelPath}
-              helperText={formErrors.modelPath || 'e.g., /models/no_origin_202.glb'}
-              placeholder="/models/lab.glb"
-              required
-            />
-            <TextField
-              label="Thumbnail URL"
-              fullWidth
-              value={formData.thumbnailUrl}
-              onChange={(e) => setFormData({ ...formData, thumbnailUrl: e.target.value })}
-              error={!!formErrors.thumbnailUrl}
-              helperText={formErrors.thumbnailUrl || 'e.g., /images/erb_202.png'}
-              placeholder="/images/lab.png"
-              required
-            />
+
+            {/* 3D Model File Upload */}
+            <Box>
+              <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
+                3D Model File (.glb) *
+              </Typography>
+              <Paper
+                variant="outlined"
+                sx={{
+                  p: 3,
+                  textAlign: 'center',
+                  borderStyle: 'dashed',
+                  borderColor: formErrors.modelPath ? 'error.main' : 'divider',
+                  bgcolor: 'background.default',
+                  cursor: 'pointer',
+                  '&:hover': { bgcolor: 'action.hover' },
+                }}
+                onClick={() => document.getElementById('model-file-input').click()}
+              >
+                <input
+                  id="model-file-input"
+                  type="file"
+                  accept=".glb"
+                  hidden
+                  onChange={handleModelFileChange}
+                />
+                <ViewInArIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 1 }} />
+                <Typography variant="body2" color="text.secondary">
+                  {modelFile ? (
+                    <>
+                      <strong>{modelFile.name}</strong>
+                      <br />
+                      ({(modelFile.size / 1024 / 1024).toFixed(2)} MB)
+                    </>
+                  ) : currentLab && formData.modelPath ? (
+                    <>
+                      Current: {formData.modelPath.split('/').pop()}
+                      <br />
+                      Click to upload new file
+                    </>
+                  ) : (
+                    <>Click to upload or drag and drop<br />GLB files only</>
+                  )}
+                </Typography>
+                {uploadProgress.model && <LinearProgress sx={{ mt: 2 }} />}
+              </Paper>
+              {formErrors.modelPath && (
+                <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 2 }}>
+                  {formErrors.modelPath}
+                </Typography>
+              )}
+            </Box>
+
+            {/* Thumbnail Image Upload */}
+            <Box>
+              <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
+                Thumbnail Image *
+              </Typography>
+              <Paper
+                variant="outlined"
+                sx={{
+                  p: 3,
+                  textAlign: 'center',
+                  borderStyle: 'dashed',
+                  borderColor: formErrors.thumbnailUrl ? 'error.main' : 'divider',
+                  bgcolor: 'background.default',
+                  cursor: 'pointer',
+                  '&:hover': { bgcolor: 'action.hover' },
+                }}
+                onClick={() => document.getElementById('thumbnail-file-input').click()}
+              >
+                <input
+                  id="thumbnail-file-input"
+                  type="file"
+                  accept="image/jpeg,image/jpg,image/png,image/webp"
+                  hidden
+                  onChange={handleThumbnailFileChange}
+                />
+                <ImageIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 1 }} />
+                <Typography variant="body2" color="text.secondary">
+                  {thumbnailFile ? (
+                    <>
+                      <strong>{thumbnailFile.name}</strong>
+                      <br />
+                      ({(thumbnailFile.size / 1024 / 1024).toFixed(2)} MB)
+                    </>
+                  ) : currentLab && formData.thumbnailUrl ? (
+                    <>
+                      Current: {formData.thumbnailUrl.split('/').pop()}
+                      <br />
+                      Click to upload new image
+                    </>
+                  ) : (
+                    <>Click to upload or drag and drop<br />JPG, PNG, or WebP (max 5MB)</>
+                  )}
+                </Typography>
+                {uploadProgress.thumbnail && <LinearProgress sx={{ mt: 2 }} />}
+              </Paper>
+              {formErrors.thumbnailUrl && (
+                <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 2 }}>
+                  {formErrors.thumbnailUrl}
+                </Typography>
+              )}
+            </Box>
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleDialogClose}>Cancel</Button>
-          <Button onClick={handleSubmit} variant="contained">
-            {currentLab ? 'Update' : 'Create'}
+          <Button onClick={handleDialogClose} disabled={uploading}>Cancel</Button>
+          <Button
+            onClick={handleSubmit}
+            variant="contained"
+            disabled={uploading}
+            startIcon={uploading ? <CloudUploadIcon /> : null}
+          >
+            {uploading ? 'Uploading...' : currentLab ? 'Update' : 'Create'}
           </Button>
         </DialogActions>
       </Dialog>
