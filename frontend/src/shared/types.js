@@ -6,7 +6,25 @@
  * @property {'available'|'checked_out'|'broken'} status - Current status
  * @property {string} locationPath - Location path (e.g., "Senior Lab › North Bench")
  * @property {string} [thumbnailUrl] - Optional placeholder image URL
- * @property {[number, number, number]} [hotspot] - Optional 3D focus point coordinates
+ * @property {string} [amazonLink] - Optional Amazon product URL
+ * @property {string} [modelPath] - Optional 3D model path (e.g., "/models/items/drone.glb")
+ * @property {number} [scale] - Optional scale factor for 3D rendering (default: 1.0)
+ * @property {string} [labId] - Optional lab ID this item belongs to (e.g., "erb_202")
+ * @property {number} [x] - Optional X coordinate in 3D space
+ * @property {number} [y] - Optional Y coordinate in 3D space
+ * @property {number} [z] - Optional Z coordinate in 3D space
+ * @property {[number, number, number]} [hotspot] - Optional 3D focus point coordinates (deprecated, use x/y/z)
+ */
+
+/**
+ * @typedef {Object} Lab
+ * @property {string} id - Lab ID (e.g., "erb_202")
+ * @property {string} name - Lab name (e.g., "ERB 202")
+ * @property {string} blurb - Lab description
+ * @property {string} modelPath - Path to 3D model file (e.g., "/models/no_origin_202.glb")
+ * @property {string} thumbnailUrl - Path to thumbnail image (e.g., "/images/erb_202.png")
+ * @property {string} [createdAt] - Creation timestamp
+ * @property {string} [updatedAt] - Last update timestamp
  */
 
 /**

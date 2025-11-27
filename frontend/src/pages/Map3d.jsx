@@ -1,9 +1,8 @@
-import React, {
+import {
   Suspense,
   useMemo,
   useEffect,
-  useRef,
-  useLayoutEffect,
+  useState,
 } from "react";
 import * as THREE from "three";
 import { Link as RouterLink, useParams } from "react-router-dom";
@@ -17,8 +16,9 @@ import {
   Environment,
 } from "@react-three/drei";
 
-import { LABS } from "../config/labs";
-import { Box, Button, Stack, Typography } from "@mui/material";
+import { getLabById } from "../lib/supabaseLabs";
+import { getEquipment } from "../lib/supabaseItems";
+import { Box, Button, Stack, Typography, CircularProgress } from "@mui/material";
 
 function Loader() {
   const { progress } = useProgress();
@@ -38,7 +38,6 @@ function LabModel({ path }) {
   // Create a scene, camera, and renderer
   const { scene } = useGLTF(path);
   const { gl, camera } = useThree();
-  const controls = useThree((s) => s.controls);
 
   // Enable clipping
   useEffect(() => {
@@ -51,7 +50,7 @@ function LabModel({ path }) {
     []
   );
 
-  const bounds = React.useMemo(() => {
+  const bounds = useMemo(() => {
     scene.updateMatrixWorld(true);
     const box = new THREE.Box3().setFromObject(scene);
     return { minY: box.min.y, maxY: box.max.y };
@@ -60,7 +59,7 @@ function LabModel({ path }) {
   const CLIP_OFFSET = 0.35; // tweak (meters) how much above the camera we cut when outside
   const CEILING_MARGIN = 0.1; // how close to the roof we consider "outside"
 
-  // Make plane follow the camer height
+  // Make plane follow the camera height
   useFrame(() => {
     if (camera.position.y >= bounds.maxY - CEILING_MARGIN) {
       ceilingPlane.constant = camera.position.y + CLIP_OFFSET;
@@ -70,7 +69,7 @@ function LabModel({ path }) {
   });
 
   // One-time traverse: enforce FrontSide and attach clipping plane
-  React.useEffect(() => {
+  useEffect(() => {
     scene.traverse((child) => {
       if (child.isMesh) {
         // Backface culling: only render the front faces
@@ -86,14 +85,84 @@ function LabModel({ path }) {
   return <primitive object={scene} />;
 }
 
+// Component to render a single 3D item model
+function ItemModel({ item }) {
+  const { scene } = useGLTF(item.modelPath);
+  const scale = item.scale || 1.0;
+
+  // Clone the scene to avoid modifying the original
+  const clonedScene = useMemo(() => scene.clone(), [scene]);
+
+  return (
+    <primitive
+      object={clonedScene}
+      position={[item.x, item.y, item.z]}
+      scale={[scale, scale, scale]}
+    />
+  );
+}
+
 export default function Map3D() {
   const { labId } = useParams();
-  const lab = useMemo(() => LABS.find((l) => l.id === labId), [labId]);
+  const [lab, setLab] = useState(null);
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  if (!lab) {
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Fetch lab details
+        const labData = await getLabById(labId);
+        setLab(labData);
+
+        // Fetch items for this lab that have 3D models
+        const itemsData = await getEquipment({ labId });
+        // Filter items that have model paths and coordinates
+        const itemsWithModels = itemsData.filter(
+          (item) =>
+            item.modelPath &&
+            item.x !== null &&
+            item.x !== undefined &&
+            item.y !== null &&
+            item.y !== undefined &&
+            item.z !== null &&
+            item.z !== undefined
+        );
+        setItems(itemsWithModels);
+
+        // Preload all item models
+        itemsWithModels.forEach((item) => {
+          if (item.modelPath) {
+            useGLTF.preload(item.modelPath);
+          }
+        });
+      } catch (err) {
+        console.error('Failed to load lab or items:', err);
+        setError(err.message || 'Failed to load lab. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [labId]);
+
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error || !lab) {
     return (
       <Box>
-        <Typography variant="h2">Lab not found</Typography>
+        <Typography variant="h2">{error || 'Lab not found'}</Typography>
         <Button
           sx={{ mt: 2 }}
           component={RouterLink}
@@ -122,7 +191,14 @@ export default function Map3D() {
         justifyContent="space-between"
         sx={{ mb: 2 }}
       >
-        <Typography variant="h1">{lab.name}</Typography>
+        <Box>
+          <Typography variant="h1">{lab.name}</Typography>
+          {items.length > 0 && (
+            <Typography variant="body2" color="text.secondary">
+              {items.length} 3D {items.length === 1 ? 'item' : 'items'} in this lab
+            </Typography>
+          )}
+        </Box>
         <Button
           variant="contained"
           color="secondary"
@@ -133,6 +209,7 @@ export default function Map3D() {
           Go Back To All Labs
         </Button>
       </Stack>
+
       {/* Camera View */}
       <div style={{ height: "80vh", width: "100%" }}>
         <Canvas camera={{ position: [5, 5, 5], fov: 45 }}>
@@ -140,7 +217,13 @@ export default function Map3D() {
           <directionalLight position={[5, 5, 5]} intensity={0.9} />
           <Suspense fallback={<Loader />}>
             <Bounds fit observe margin={1}>
+              {/* Lab Model */}
               <LabModel key={lab.modelPath} path={lab.modelPath} />
+
+              {/* Item Models */}
+              {items.map((item) => (
+                <ItemModel key={item.id} item={item} />
+              ))}
             </Bounds>
             <Environment preset="city" />
           </Suspense>

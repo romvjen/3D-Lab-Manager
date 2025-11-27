@@ -44,6 +44,7 @@ function Items() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
+  const [activeSearchQuery, setActiveSearchQuery] = useState(searchParams.get("q") || "");
   const [categoryFilter, setCategoryFilter] = useState(
     searchParams.get("category") || "all"
   );
@@ -51,17 +52,6 @@ function Items() {
     searchParams.get("status") || "all"
   );
   const [viewMode, setViewMode] = useState("grid");
-
-  // Debounced search implementation
-  const [debouncedQuery, setDebouncedQuery] = useState(searchQuery);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedQuery(searchQuery);
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
 
   // Fetch items function
   const fetchItems = useCallback(async () => {
@@ -71,7 +61,7 @@ function Items() {
 
       // Fetch filtered results directly from Supabase
       const data = await getEquipment({
-        q: debouncedQuery,
+        q: activeSearchQuery,
         category: categoryFilter,
         status: statusFilter,
       });
@@ -83,20 +73,20 @@ function Items() {
     } finally {
       setLoading(false);
     }
-  }, [debouncedQuery, categoryFilter, statusFilter]);
+  }, [activeSearchQuery, categoryFilter, statusFilter]);
 
   // Update URL parameters when filters change
   useEffect(() => {
     const params = new URLSearchParams();
 
-    if (debouncedQuery) params.set("q", debouncedQuery);
+    if (activeSearchQuery) params.set("q", activeSearchQuery);
     if (categoryFilter && categoryFilter !== "all")
       params.set("category", categoryFilter);
     if (statusFilter && statusFilter !== "all")
       params.set("status", statusFilter);
 
     setSearchParams(params);
-  }, [debouncedQuery, categoryFilter, statusFilter, setSearchParams]);
+  }, [activeSearchQuery, categoryFilter, statusFilter, setSearchParams]);
 
   // Fetch items when filters change
   useEffect(() => {
@@ -108,8 +98,13 @@ function Items() {
     setSearchQuery(value);
   };
 
+  const handleSearch = () => {
+    setActiveSearchQuery(searchQuery);
+  };
+
   const handleSearchClear = () => {
     setSearchQuery("");
+    setActiveSearchQuery("");
   };
 
   const handleCategoryChange = (event) => {
@@ -130,6 +125,7 @@ function Items() {
 
   const clearAllFilters = () => {
     setSearchQuery("");
+    setActiveSearchQuery("");
     setCategoryFilter("all");
     setStatusFilter("all");
   };
@@ -144,7 +140,7 @@ function Items() {
 
   // Get active filter count for display
   const activeFilterCount = [
-    debouncedQuery,
+    activeSearchQuery,
     categoryFilter !== "all" ? categoryFilter : null,
     statusFilter !== "all" ? statusFilter : null,
   ].filter(Boolean).length;
@@ -211,6 +207,7 @@ function Items() {
             value={searchQuery}
             onChange={handleSearchChange}
             onClear={handleSearchClear}
+            onSearch={handleSearch}
             disabled={loading}
           />
         </Box>
@@ -331,9 +328,9 @@ function Items() {
                 Active filters:
               </Typography>
 
-              {debouncedQuery && (
+              {activeSearchQuery && (
                 <Chip
-                  label={`Search: "${debouncedQuery}"`}
+                  label={`Search: "${activeSearchQuery}"`}
                   size="small"
                   onDelete={handleSearchClear}
                   color="primary"

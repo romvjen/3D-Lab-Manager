@@ -51,7 +51,7 @@ export default function LabCard({ lab }) {
         <CardMedia
           component="img"
           alt={`${lab.name} thumbnail`}
-          image={lab.thumb}
+          image={lab.thumbnailUrl || lab.thumb}
           sx={{ objectFit: "cover", width: "100%", height: "100%" }}
           onError={(e) => {
             // Hide the broken image and show placeholder instead

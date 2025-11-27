@@ -17,7 +17,7 @@ export const startWorker = async () => {
       console.log("🔧 MSW Service Worker started successfully");
       return true;
     } catch (error) {
-      console.error("❌ Failed to start MSW Service Worker:", error);
+      console.error("Failed to start MSW Service Worker:", error);
       return false;
     }
   }

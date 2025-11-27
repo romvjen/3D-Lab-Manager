@@ -1,65 +1,59 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Box,
   Button,
   Card,
   CardContent,
   CardActions,
-  Drawer,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
   Grid,
-  IconButton,
   TextField,
   Typography,
   Chip,
   Stack,
   Snackbar,
   Alert,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemSecondaryAction,
-  Divider,
+  IconButton,
+  CardMedia,
 } from '@mui/material';
 import {
   Edit as EditIcon,
   Delete as DeleteIcon,
   Add as AddIcon,
   Science as ScienceIcon,
-  Room as RoomIcon,
-  Inventory as InventoryIcon,
 } from '@mui/icons-material';
-import { useAuth } from '../../contexts/AuthContext';
-import { can } from '../../lib/permissions';
+import { getLabs, createLab, updateLab, deleteLab } from '../../lib/supabaseLabs';
 
 const LabsAdmin = () => {
-  const { user } = useAuth();
   const [labs, setLabs] = useState([]);
-  const [_loading, _setLoading] = useState(true);
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [currentLab, setCurrentLab] = useState(null);
+  const [labToDelete, setLabToDelete] = useState(null);
   const [formData, setFormData] = useState({
+    id: '',
     name: '',
-    building: '',
-    rooms: [],
-    modelUrl: '',
+    blurb: '',
+    modelPath: '',
+    thumbnailUrl: '',
   });
-  const [newRoom, setNewRoom] = useState('');
+  const [formErrors, setFormErrors] = useState({});
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
-  const canWrite = can(user?.role, 'labs.write');
-
   const fetchLabs = async () => {
-    _setLoading(true);
+    setLoading(true);
     try {
-      const response = await fetch('/api/admin/labs');
-      const data = await response.json();
-      if (data.success) {
-        setLabs(data.data);
-      }
-    } catch (_error) {
+      const data = await getLabs();
+      setLabs(data);
+    } catch (error) {
+      console.error('Failed to load labs:', error);
       showSnackbar('Failed to load labs', 'error');
     } finally {
-      _setLoading(false);
+      setLoading(false);
     }
   };
 
@@ -67,56 +61,110 @@ const LabsAdmin = () => {
     fetchLabs();
   }, []);
 
+  const handleAddClick = () => {
+    setCurrentLab(null);
+    setFormData({
+      id: '',
+      name: '',
+      blurb: '',
+      modelPath: '',
+      thumbnailUrl: '',
+    });
+    setFormErrors({});
+    setDialogOpen(true);
+  };
+
   const handleEditClick = (lab) => {
     setCurrentLab(lab);
     setFormData({
+      id: lab.id,
       name: lab.name,
-      building: lab.building,
-      rooms: [...lab.rooms],
-      modelUrl: lab.modelUrl || '',
+      blurb: lab.blurb || '',
+      modelPath: lab.modelPath || '',
+      thumbnailUrl: lab.thumbnailUrl || '',
     });
-    setDrawerOpen(true);
+    setFormErrors({});
+    setDialogOpen(true);
   };
 
-  const handleDrawerClose = () => {
-    setDrawerOpen(false);
+  const handleDeleteClick = (lab) => {
+    setLabToDelete(lab);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDialogClose = () => {
+    setDialogOpen(false);
     setCurrentLab(null);
-    setNewRoom('');
+    setFormErrors({});
   };
 
-  const handleAddRoom = () => {
-    if (newRoom.trim()) {
-      setFormData({
-        ...formData,
-        rooms: [...formData.rooms, newRoom.trim()],
-      });
-      setNewRoom('');
+  const handleDeleteDialogClose = () => {
+    setDeleteDialogOpen(false);
+    setLabToDelete(null);
+  };
+
+  const validateForm = () => {
+    const errors = {};
+
+    if (!formData.id.trim()) {
+      errors.id = 'Lab ID is required';
     }
-  };
+    if (!formData.name.trim()) {
+      errors.name = 'Lab name is required';
+    }
+    if (!formData.blurb.trim()) {
+      errors.blurb = 'Description is required';
+    }
+    if (!formData.modelPath.trim()) {
+      errors.modelPath = 'Model path is required';
+    }
+    if (!formData.thumbnailUrl.trim()) {
+      errors.thumbnailUrl = 'Thumbnail URL is required';
+    }
 
-  const handleRemoveRoom = (index) => {
-    setFormData({
-      ...formData,
-      rooms: formData.rooms.filter((_, i) => i !== index),
-    });
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
   const handleSubmit = async () => {
-    try {
-      const response = await fetch(`/api/admin/labs/${currentLab.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
+    if (!validateForm()) {
+      return;
+    }
 
-      const data = await response.json();
-      if (data.success) {
+    try {
+      if (currentLab) {
+        // Update existing lab
+        await updateLab(currentLab.id, {
+          name: formData.name,
+          blurb: formData.blurb,
+          modelPath: formData.modelPath,
+          thumbnailUrl: formData.thumbnailUrl,
+        });
         showSnackbar('Lab updated successfully', 'success');
-        fetchLabs();
-        handleDrawerClose();
+      } else {
+        // Create new lab
+        await createLab(formData);
+        showSnackbar('Lab created successfully', 'success');
       }
-    } catch (_error) {
-      showSnackbar('Failed to update lab', 'error');
+      fetchLabs();
+      handleDialogClose();
+    } catch (error) {
+      console.error('Failed to save lab:', error);
+      showSnackbar(error.message || 'Failed to save lab', 'error');
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!labToDelete) return;
+
+    try {
+      await deleteLab(labToDelete.id);
+      showSnackbar('Lab deleted successfully', 'success');
+      fetchLabs();
+      handleDeleteDialogClose();
+    } catch (error) {
+      console.error('Failed to delete lab:', error);
+      showSnackbar(error.message || 'Failed to delete lab', 'error');
     }
   };
 
@@ -131,162 +179,186 @@ const LabsAdmin = () => {
   return (
     <Box>
       {/* Header */}
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="h5" component="h1" sx={{ fontWeight: 600 }}>
-          Labs Management
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-          Manage lab spaces, rooms, and 3D assets
-        </Typography>
+      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Box>
+          <Typography variant="h5" component="h1" sx={{ fontWeight: 600 }}>
+            Labs Management
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+            Manage lab spaces and 3D models
+          </Typography>
+        </Box>
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          onClick={handleAddClick}
+          aria-label="Add new lab"
+        >
+          Add Lab
+        </Button>
       </Box>
 
       {/* Labs Grid */}
-      <Grid container spacing={3}>
-        {labs.map((lab) => (
-          <Grid item xs={12} sm={6} md={4} key={lab.id}>
-            <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-              <CardContent sx={{ flex: 1 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <ScienceIcon sx={{ mr: 1, color: 'primary.main' }} />
-                  <Typography variant="h6" component="h2" sx={{ fontWeight: 600 }}>
-                    {lab.name}
-                  </Typography>
-                </Box>
-                <Stack spacing={1}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <RoomIcon fontSize="small" color="action" />
-                    <Typography variant="body2" color="text.secondary">
-                      {lab.building}
-                    </Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Typography variant="body2" color="text.secondary">
-                      Rooms: {lab.roomsCount}
-                    </Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <InventoryIcon fontSize="small" color="action" />
-                    <Typography variant="body2" color="text.secondary">
-                      Items: {lab.itemsCount}
-                    </Typography>
-                  </Box>
-                </Stack>
-                {lab.modelUrl && (
-                  <Chip
-                    label="3D Model Available"
-                    size="small"
-                    color="success"
-                    sx={{ mt: 2 }}
+      {loading ? (
+        <Typography>Loading labs...</Typography>
+      ) : labs.length === 0 ? (
+        <Card sx={{ textAlign: 'center', py: 6 }}>
+          <CardContent>
+            <ScienceIcon sx={{ fontSize: 60, color: 'text.disabled', mb: 2 }} />
+            <Typography variant="h6" color="text.secondary" gutterBottom>
+              No labs found
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              Get started by adding your first lab
+            </Typography>
+            <Button variant="contained" startIcon={<AddIcon />} onClick={handleAddClick}>
+              Add Lab
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <Grid container spacing={3}>
+          {labs.map((lab) => (
+            <Grid item xs={12} sm={6} md={4} key={lab.id}>
+              <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                {lab.thumbnailUrl && (
+                  <CardMedia
+                    component="img"
+                    height="140"
+                    image={lab.thumbnailUrl}
+                    alt={lab.name}
+                    sx={{ objectFit: 'cover' }}
                   />
                 )}
-              </CardContent>
-              {canWrite && (
-                <CardActions>
-                  <Button
+                <CardContent sx={{ flex: 1 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                    <ScienceIcon sx={{ mr: 1, color: 'primary.main' }} />
+                    <Typography variant="h6" component="h2" sx={{ fontWeight: 600 }}>
+                      {lab.name}
+                    </Typography>
+                  </Box>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                    {lab.blurb}
+                  </Typography>
+                  <Stack direction="row" spacing={1}>
+                    <Chip label={`ID: ${lab.id}`} size="small" variant="outlined" />
+                    {lab.modelPath && (
+                      <Chip label="3D Model" size="small" color="success" />
+                    )}
+                  </Stack>
+                </CardContent>
+                <CardActions sx={{ justifyContent: 'flex-end', gap: 1 }}>
+                  <IconButton
                     size="small"
-                    startIcon={<EditIcon />}
                     onClick={() => handleEditClick(lab)}
                     aria-label={`Edit ${lab.name}`}
+                    color="primary"
                   >
-                    Edit
-                  </Button>
+                    <EditIcon />
+                  </IconButton>
+                  <IconButton
+                    size="small"
+                    onClick={() => handleDeleteClick(lab)}
+                    aria-label={`Delete ${lab.name}`}
+                    color="error"
+                  >
+                    <DeleteIcon />
+                  </IconButton>
                 </CardActions>
-              )}
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      )}
 
-      {/* Edit Drawer */}
-      <Drawer
-        anchor="right"
-        open={drawerOpen}
-        onClose={handleDrawerClose}
-        PaperProps={{ sx: { width: { xs: '100%', sm: 400 } } }}
+      {/* Add/Edit Dialog */}
+      <Dialog
+        open={dialogOpen}
+        onClose={handleDialogClose}
+        maxWidth="sm"
+        fullWidth
       >
-        <Box sx={{ p: 3 }}>
-          <Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>
-            Edit Lab
-          </Typography>
-          <Stack spacing={3}>
+        <DialogTitle>
+          {currentLab ? 'Edit Lab' : 'Add New Lab'}
+        </DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              label="Lab ID"
+              fullWidth
+              value={formData.id}
+              onChange={(e) => setFormData({ ...formData, id: e.target.value })}
+              error={!!formErrors.id}
+              helperText={formErrors.id || 'e.g., erb_202'}
+              disabled={!!currentLab}
+              required
+            />
             <TextField
               label="Lab Name"
               fullWidth
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              error={!!formErrors.name}
+              helperText={formErrors.name || 'e.g., ERB 202'}
+              required
             />
             <TextField
-              label="Building"
+              label="Description"
               fullWidth
-              value={formData.building}
-              onChange={(e) => setFormData({ ...formData, building: e.target.value })}
+              multiline
+              rows={2}
+              value={formData.blurb}
+              onChange={(e) => setFormData({ ...formData, blurb: e.target.value })}
+              error={!!formErrors.blurb}
+              helperText={formErrors.blurb || 'e.g., Senior Design Lab'}
+              required
             />
             <TextField
-              label="3D Model URL"
+              label="Model Path"
               fullWidth
+              value={formData.modelPath}
+              onChange={(e) => setFormData({ ...formData, modelPath: e.target.value })}
+              error={!!formErrors.modelPath}
+              helperText={formErrors.modelPath || 'e.g., /models/no_origin_202.glb'}
               placeholder="/models/lab.glb"
-              helperText="Path to GLB model file"
-              value={formData.modelUrl}
-              onChange={(e) => setFormData({ ...formData, modelUrl: e.target.value })}
+              required
             />
-            <Box>
-              <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
-                Rooms
-              </Typography>
-              <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
-                <TextField
-                  size="small"
-                  fullWidth
-                  placeholder="Add room..."
-                  value={newRoom}
-                  onChange={(e) => setNewRoom(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleAddRoom()}
-                />
-                <Button
-                  variant="contained"
-                  startIcon={<AddIcon />}
-                  onClick={handleAddRoom}
-                  disabled={!newRoom.trim()}
-                >
-                  Add
-                </Button>
-              </Box>
-              <List dense>
-                {formData.rooms.map((room, index) => (
-                  <React.Fragment key={index}>
-                    <ListItem>
-                      <ListItemText primary={room} />
-                      <ListItemSecondaryAction>
-                        <IconButton
-                          edge="end"
-                          aria-label="delete room"
-                          onClick={() => handleRemoveRoom(index)}
-                        >
-                          <DeleteIcon />
-                        </IconButton>
-                      </ListItemSecondaryAction>
-                    </ListItem>
-                    {index < formData.rooms.length - 1 && <Divider />}
-                  </React.Fragment>
-                ))}
-                {formData.rooms.length === 0 && (
-                  <Typography variant="body2" color="text.secondary" sx={{ py: 2, textAlign: 'center' }}>
-                    No rooms added
-                  </Typography>
-                )}
-              </List>
-            </Box>
-            <Box sx={{ display: 'flex', gap: 2, pt: 2 }}>
-              <Button fullWidth onClick={handleDrawerClose}>
-                Cancel
-              </Button>
-              <Button fullWidth variant="contained" onClick={handleSubmit}>
-                Save Changes
-              </Button>
-            </Box>
+            <TextField
+              label="Thumbnail URL"
+              fullWidth
+              value={formData.thumbnailUrl}
+              onChange={(e) => setFormData({ ...formData, thumbnailUrl: e.target.value })}
+              error={!!formErrors.thumbnailUrl}
+              helperText={formErrors.thumbnailUrl || 'e.g., /images/erb_202.png'}
+              placeholder="/images/lab.png"
+              required
+            />
           </Stack>
-        </Box>
-      </Drawer>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDialogClose}>Cancel</Button>
+          <Button onClick={handleSubmit} variant="contained">
+            {currentLab ? 'Update' : 'Create'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onClose={handleDeleteDialogClose}>
+        <DialogTitle>Delete Lab</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Are you sure you want to delete <strong>{labToDelete?.name}</strong>?
+            This action cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDeleteDialogClose}>Cancel</Button>
+          <Button onClick={handleDelete} color="error" variant="contained">
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Snackbar */}
       <Snackbar

@@ -1,20 +1,34 @@
-import React, { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import LabCard from "../components/LabCard";
-import { LABS } from "../config/labs";
-import { Link as RouterLink } from "react-router-dom";
+import { getLabs } from "../lib/supabaseLabs";
 import {
   Box,
   Typography,
-  Grid,
-  Card,
-  CardMedia,
-  CardContent,
-  CardActions,
-  Button,
-  Chip,
+  CircularProgress,
 } from "@mui/material";
 
 export default function Map3dIndex() {
+  const [labs, setLabs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchLabs = async () => {
+      try {
+        setLoading(true);
+        const data = await getLabs();
+        setLabs(data);
+      } catch (err) {
+        console.error('Failed to load labs:', err);
+        setError('Failed to load labs. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLabs();
+  }, []);
+
   return (
     <Box
       sx={{
@@ -50,26 +64,50 @@ export default function Map3dIndex() {
         </Typography>
       </Box>
 
-      {/*Display Grid*/}
-      <Box
-        sx={{
-          display: "grid",
-          gridTemplateColumns: {
-            xs: "1fr",
-            sm: "repeat(2, 1fr)",
-            md: "repeat(3, 1fr)",
-            lg: "repeat(4, 1fr)",
-            xl: "repeat(6, 1fr)",
-          },
-          gap: 2,
-        }}
-      >
-        {LABS.map((lab) => (
-          <Box key={lab.id} sx={{ display: "flex" }}>
-            <LabCard lab={lab} />
-          </Box>
-        ))}
-      </Box>
+      {/* Loading State */}
+      {loading && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+          <CircularProgress />
+        </Box>
+      )}
+
+      {/* Error State */}
+      {error && !loading && (
+        <Box sx={{ textAlign: 'center', py: 8 }}>
+          <Typography color="error">{error}</Typography>
+        </Box>
+      )}
+
+      {/* Display Grid */}
+      {!loading && !error && (
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: {
+              xs: "1fr",
+              sm: "repeat(2, 1fr)",
+              md: "repeat(3, 1fr)",
+              lg: "repeat(4, 1fr)",
+              xl: "repeat(6, 1fr)",
+            },
+            gap: 2,
+          }}
+        >
+          {labs.length === 0 ? (
+            <Box sx={{ gridColumn: '1 / -1', textAlign: 'center', py: 8 }}>
+              <Typography color="text.secondary">
+                No labs available. Contact your administrator to add labs.
+              </Typography>
+            </Box>
+          ) : (
+            labs.map((lab) => (
+              <Box key={lab.id} sx={{ display: "flex" }}>
+                <LabCard lab={lab} />
+              </Box>
+            ))
+          )}
+        </Box>
+      )}
     </Box>
   );
 }

@@ -8,7 +8,8 @@ export const mockItems = [
     status: 'available',
     locationPath: 'Senior Lab › North Bench › Station A',
     thumbnailUrl: 'https://via.placeholder.com/300x200/2563eb/ffffff?text=Prusa+MK3S+',
-    hotspot: [0.2, 0.5, 0.3]
+    hotspot: [0.2, 0.5, 0.3],
+    amazonLink: 'https://www.amazon.com/Original-Removable-Beginner-Friendly-Automatic-Calibration/dp/B0DLHJB9HW/ref=sr_1_1_sspa?crid=9A9GIPJ791QP&dib=eyJ2IjoiMSJ9.3-dj71JTbCR0cMTGV4lT6GIiZX7E7skYWlwMvFH9Oxcv2OfUpvMdAS9-AtwHFEJ4JAXqAufSO4cEb6fyJMcO056lQgaOjd2zZqV9qPy360JvnNGl95S1RY7lXZl_JWuxiaqOdCwS_--pZsF6kVtcNTduzeE26JmtXnYAt1OTGwPHOdUL6EFQFkgPB5l4eiuqsz9_hXvaOvBW8SJR-WBKIzBiVnceNhrFQ3ininMJ_m8.OLZwT1pzaNdqaqmt2ALWpve-1xo1AO-6YVH9Yxirn1A&dib_tag=se&keywords=Prusa%2BMK3S%2BPrinter&qid=1764119588&sprefix=prusa%2Bmk3s%2Bprinter%2Caps%2C176&sr=8-1-spons&ufe=app_do%3Aamzn1.fos.5998aa40-ec6f-4947-a68f-cd087fee0848&sp_csd=d2lkZ2V0TmFtZT1zcF9hdGY&th=1'
   },
   {
     id: 'END001',
@@ -138,7 +139,8 @@ export const mockItems = [
     category: 'Electronics',
     status: 'available',
     locationPath: 'Electronics Bench › Component Drawer',
-    thumbnailUrl: 'https://via.placeholder.com/300x200/2563eb/ffffff?text=Arduino+Uno'
+    thumbnailUrl: 'https://via.placeholder.com/300x200/2563eb/ffffff?text=Arduino+Uno',
+    amazonLink: 'https://www.amazon.com/Arduino-A000066-ARDUINO-UNO-R3/dp/B008GRTSV6/ref=sr_1_1?dib=eyJ2IjoiMSJ9.MazmhFfn-DF8W5oyX_S-tDFAqLRDaMJSkroaZhdQMdhpGLdQMZg0O8c8oGtEXE_3KITn5L9NtwYmgN0pAkE-bcCAfjw0X__Ws5aGu8rCsuUmEMzFLlvMWd-j96-ufQUokE8GxhjuBAIuqBvpjkAnv_ncKEOozrGwkhuNPnGlNpwitkfJHVjMZBv3X7tj28tKm_1WdUbI4mxcarL_TzJGbupGwgYyclzpry9Ym1VTq-k.uWMSXnbOSBfvT99ZyMQtJGqPTdWaM3GkcdqhIjmM0EU&dib_tag=se&hvadid=410081496133&hvdev=c&hvexpln=0&hvlocphy=9027307&hvnetw=g&hvocijid=1145713816427838007--&hvqmt=e&hvrand=1145713816427838007&hvtargid=kwd-44729630490&hydadcr=18006_11412182&keywords=arduino%2Buno%2B-%2Br3&mcid=a0ad9341261933b08fefdf797b2ed3ff&qid=1764119166&sr=8-1&th=1'
   },
   {
     id: 'RAS001',

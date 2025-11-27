@@ -12,7 +12,8 @@ import {
 import {
   OpenInNew as OpenInNewIcon,
   LocationOn as LocationIcon,
-  Inventory as InventoryIcon
+  Inventory as InventoryIcon,
+  ShoppingCart as ShoppingCartIcon
 } from '@mui/icons-material';
 
 /**
@@ -232,6 +233,46 @@ function ItemCard({ item }) {
           </Typography>
         </Box>
 
+        {/* Amazon Link Button (if available) */}
+        {item.amazonLink && (
+          <Box
+            sx={{
+              pt: 1,
+              flexShrink: 0
+            }}
+          >
+            <Box
+              component="a"
+              href={item.amazonLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()} // Prevent card click
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 0.5,
+                py: 0.75,
+                px: 1.5,
+                backgroundColor: '#FF9900',
+                color: 'white',
+                textDecoration: 'none',
+                borderRadius: 1,
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                transition: 'all 0.2s',
+                '&:hover': {
+                  backgroundColor: '#EC7211',
+                  transform: 'translateY(-1px)'
+                }
+              }}
+            >
+              <ShoppingCartIcon sx={{ fontSize: '0.875rem' }} />
+              View on Amazon
+            </Box>
+          </Box>
+        )}
+
         {/* View Details Button */}
         <Box
           sx={{
@@ -243,7 +284,7 @@ function ItemCard({ item }) {
             borderColor: 'divider',
             height: 20, // Fixed height for button area
             flexShrink: 0,
-            mt :'auto'
+            mt: item.amazonLink ? 1 : 'auto' // Adjust margin based on Amazon link presence
           }}
         >
           <Typography

@@ -22,6 +22,8 @@ import {
   QrCode as QrCodeIcon,
   Category as CategoryIcon,
   Info as InfoIcon,
+  ShoppingCart as ShoppingCartIcon,
+  History as HistoryIcon,
 } from "@mui/icons-material";
 
 // API and components
@@ -559,6 +561,91 @@ function ItemDetail() {
                   </Typography>
                 </Box>
               </Box>
+
+              {/* Checkout Log Section */}
+              <Box sx={{ mb: 4 }}>
+                <Typography
+                  variant="h6"
+                  sx={{
+                    mb: 2,
+                    fontWeight: 600,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1,
+                  }}
+                >
+                  <HistoryIcon
+                    sx={{ fontSize: "1.25rem", color: "primary.main" }}
+                  />
+                  Checkout History
+                </Typography>
+
+                <Box
+                  sx={{
+                    backgroundColor: "grey.50",
+                    border: "1px solid",
+                    borderColor: "grey.200",
+                    borderRadius: 2,
+                    p: 3,
+                  }}
+                >
+                  {item.status === "checked_out" ? (
+                    <Box>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ mb: 1.5 }}
+                      >
+                        <strong>Current Status:</strong> Checked Out
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        This item is currently checked out. Checkout history details will be available when the checkout system is fully implemented.
+                      </Typography>
+                    </Box>
+                  ) : (
+                    <Box sx={{ textAlign: "center", py: 2 }}>
+                      <HistoryIcon
+                        sx={{ fontSize: "2.5rem", color: "text.disabled", mb: 1 }}
+                      />
+                      <Typography variant="body2" color="text.secondary">
+                        {item.status === "available"
+                          ? "This item is currently available. No active checkouts."
+                          : "Checkout history will be displayed here when available."}
+                      </Typography>
+                    </Box>
+                  )}
+                </Box>
+              </Box>
+
+              {/* Amazon Link (if available) */}
+              {item.amazonLink && (
+                <Box sx={{ mb: 3 }}>
+                  <Button
+                    component="a"
+                    href={item.amazonLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    variant="contained"
+                    size="large"
+                    startIcon={<ShoppingCartIcon />}
+                    fullWidth
+                    sx={{
+                      py: 1.75,
+                      fontWeight: 600,
+                      fontSize: "1rem",
+                      backgroundColor: "#FF9900",
+                      color: "white",
+                      boxShadow: 2,
+                      "&:hover": {
+                        backgroundColor: "#EC7211",
+                        boxShadow: 4,
+                      },
+                    }}
+                  >
+                    View on Amazon
+                  </Button>
+                </Box>
+              )}
 
               {/* Action Buttons */}
               <Box
