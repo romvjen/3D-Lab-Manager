@@ -1,9 +1,4 @@
-import {
-  Suspense,
-  useMemo,
-  useEffect,
-  useState,
-} from "react";
+import { Suspense, useMemo, useEffect, useState } from "react";
 import * as THREE from "three";
 import { Link as RouterLink, useParams } from "react-router-dom";
 import { Canvas, useThree, useFrame } from "@react-three/fiber";
@@ -18,7 +13,13 @@ import {
 
 import { getLabById } from "../lib/supabaseLabs";
 import { getEquipment } from "../lib/supabaseItems";
-import { Box, Button, Stack, Typography, CircularProgress } from "@mui/material";
+import {
+  Box,
+  Button,
+  Stack,
+  Typography,
+  CircularProgress,
+} from "@mui/material";
 
 function Loader() {
   const { progress } = useProgress();
@@ -33,18 +34,17 @@ function Loader() {
 }
 
 function LabModel({ path }) {
-  useGLTF.preload(path); // Preload specific lab file
-
-  // Create a scene, camera, and renderer
+  useGLTF.preload(path);
   const { scene } = useGLTF(path);
   const { gl, camera } = useThree();
+  const group = useState(() => new THREE.Group())[0];
 
-  // Enable clipping
+  // enable local clipping
   useEffect(() => {
     gl.localClippingEnabled = true;
   }, [gl]);
 
-  // Horizontal clipping plane to hide above cameraY and offset
+  // clipping plane
   const ceilingPlane = useMemo(
     () => new THREE.Plane(new THREE.Vector3(0, -1, 0), -1e6),
     []
@@ -56,10 +56,9 @@ function LabModel({ path }) {
     return { minY: box.min.y, maxY: box.max.y };
   }, [scene]);
 
-  const CLIP_OFFSET = 0.35; // tweak (meters) how much above the camera we cut when outside
-  const CEILING_MARGIN = 0.1; // how close to the roof we consider "outside"
+  const CLIP_OFFSET = 0.35;
+  const CEILING_MARGIN = 0.1;
 
-  // Make plane follow the camera height
   useFrame(() => {
     if (camera.position.y >= bounds.maxY - CEILING_MARGIN) {
       ceilingPlane.constant = camera.position.y + CLIP_OFFSET;
@@ -68,21 +67,37 @@ function LabModel({ path }) {
     }
   });
 
-  // One-time traverse: enforce FrontSide and attach clipping plane
+  // apply backface culling + clipping to all meshes
   useEffect(() => {
+    group.add(scene);
     scene.traverse((child) => {
-      if (child.isMesh) {
-        // Backface culling: only render the front faces
-        child.material.side = THREE.FrontSide;
+      if (!child.isMesh) return;
 
-        // Attach clipping plane
-        child.material.clippingPlanes = [ceilingPlane];
-        child.material.needsUpdate = true;
-      }
+      const mats = Array.isArray(child.material)
+        ? child.material
+        : [child.material];
+
+      mats.forEach((mat) => {
+        if (!mat) return;
+
+        const name = (child.name + " " + mat.name).toLowerCase();
+
+        // keep glass/windows double-sided
+        if (name.includes("window") || name.includes("glass")) {
+          mat.side = THREE.DoubleSide;
+        } else {
+          // BACKFACE CULLING: only draw front faces
+          mat.side = THREE.FrontSide;
+        }
+
+        // attach clipping plane
+        mat.clippingPlanes = [ceilingPlane];
+        mat.needsUpdate = true;
+      });
     });
-  }, [scene, ceilingPlane]);
+  }, [scene, ceilingPlane, group]);
 
-  return <primitive object={scene} />;
+  return <primitive object={group} />;
 }
 
 // Component to render a single 3D item model
@@ -96,7 +111,8 @@ function ItemModel({ item }) {
   return (
     <primitive
       object={clonedScene}
-      position={[item.x, item.y, item.z]}
+      position={[item.posX, item.posY, item.posZ]}
+      rotation={[item.rotX, item.rotX, item.rotX]}
       scale={[scale, scale, scale]}
     />
   );
@@ -141,8 +157,8 @@ export default function Map3D() {
           }
         });
       } catch (err) {
-        console.error('Failed to load lab or items:', err);
-        setError(err.message || 'Failed to load lab. Please try again.');
+        console.error("Failed to load lab or items:", err);
+        setError(err.message || "Failed to load lab. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -153,7 +169,14 @@ export default function Map3D() {
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: "50vh",
+        }}
+      >
         <CircularProgress />
       </Box>
     );
@@ -162,7 +185,7 @@ export default function Map3D() {
   if (error || !lab) {
     return (
       <Box>
-        <Typography variant="h2">{error || 'Lab not found'}</Typography>
+        <Typography variant="h2">{error || "Lab not found"}</Typography>
         <Button
           sx={{ mt: 2 }}
           component={RouterLink}
@@ -195,7 +218,8 @@ export default function Map3D() {
           <Typography variant="h1">{lab.name}</Typography>
           {items.length > 0 && (
             <Typography variant="body2" color="text.secondary">
-              {items.length} 3D {items.length === 1 ? 'item' : 'items'} in this lab
+              {items.length} 3D {items.length === 1 ? "item" : "items"} in this
+              lab
             </Typography>
           )}
         </Box>

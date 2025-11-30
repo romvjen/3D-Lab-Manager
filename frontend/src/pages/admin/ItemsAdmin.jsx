@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import {
   Box,
   Button,
@@ -31,7 +31,7 @@ import {
   Stack,
   Divider,
   Grid,
-} from '@mui/material';
+} from "@mui/material";
 import {
   Add as AddIcon,
   MoreVert as MoreVertIcon,
@@ -39,15 +39,15 @@ import {
   Edit as EditIcon,
   Delete as DeleteIcon,
   ViewInAr as ViewInArIcon,
-} from '@mui/icons-material';
+} from "@mui/icons-material";
 import {
   getEquipment,
   createEquipment,
   updateEquipment,
   deleteEquipment,
-} from '../../lib/supabaseItems';
-import { getLabs } from '../../lib/supabaseLabs';
-import { ITEM_CATEGORIES, ITEM_STATUSES } from '../../shared/types';
+} from "../../lib/supabaseItems";
+import { getLabs } from "../../lib/supabaseLabs";
+import { ITEM_CATEGORIES, ITEM_STATUSES } from "../../shared/types";
 
 const ItemsAdmin = () => {
   const [items, setItems] = useState([]);
@@ -55,10 +55,10 @@ const ItemsAdmin = () => {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [search, setSearch] = useState('');
-  const [filterCategory, setFilterCategory] = useState('all');
-  const [filterStatus, setFilterStatus] = useState('all');
-  const [filterLab, setFilterLab] = useState('all');
+  const [search, setSearch] = useState("");
+  const [filterCategory, setFilterCategory] = useState("all");
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [filterLab, setFilterLab] = useState("all");
   const [selected, setSelected] = useState([]);
   const [menuAnchor, setMenuAnchor] = useState(null);
   const [currentItem, setCurrentItem] = useState(null);
@@ -66,22 +66,29 @@ const ItemsAdmin = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
   const [formData, setFormData] = useState({
-    id: '',
-    name: '',
-    category: '',
-    status: 'available',
-    locationPath: '',
-    thumbnailUrl: '',
-    amazonLink: '',
-    modelPath: '',
+    id: "",
+    name: "",
+    category: "",
+    status: "available",
+    ladId: "",
+    locationPath: "",
+    thumbnailUrl: "",
+    amazonLink: "",
+    modelPath: "",
     scale: 1.0,
-    labId: '',
-    x: '',
-    y: '',
-    z: '',
+    posX: "",
+    posY: "",
+    posZ: "",
+    rotX: "",
+    rotY: "",
+    rotZ: "",
   });
   const [formErrors, setFormErrors] = useState({});
-  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
 
   const fetchItems = async () => {
     setLoading(true);
@@ -90,12 +97,12 @@ const ItemsAdmin = () => {
         q: search,
         category: filterCategory,
         status: filterStatus,
-        labId: filterLab !== 'all' ? filterLab : null,
+        labId: filterLab !== "all" ? filterLab : null,
       });
       setItems(data);
     } catch (error) {
-      console.error('Failed to load items:', error);
-      showSnackbar('Failed to load items', 'error');
+      console.error("Failed to load items:", error);
+      showSnackbar("Failed to load items", "error");
     } finally {
       setLoading(false);
     }
@@ -106,7 +113,7 @@ const ItemsAdmin = () => {
       const data = await getLabs();
       setLabs(data);
     } catch (error) {
-      console.error('Failed to load labs:', error);
+      console.error("Failed to load labs:", error);
     }
   };
 
@@ -144,19 +151,22 @@ const ItemsAdmin = () => {
 
   const handleAddClick = () => {
     setFormData({
-      id: '',
-      name: '',
-      category: 'Tool',
-      status: 'available',
-      locationPath: '',
-      thumbnailUrl: '',
-      amazonLink: '',
-      modelPath: '',
+      id: "",
+      name: "",
+      category: "Tool",
+      status: "available",
+      ladId: "",
+      locationPath: "",
+      thumbnailUrl: "",
+      amazonLink: "",
+      modelPath: "",
       scale: 1.0,
-      labId: '',
-      x: '',
-      y: '',
-      z: '',
+      posX: "",
+      posY: "",
+      posZ: "",
+      rotX: "",
+      rotY: "",
+      rotZ: "",
     });
     setFormErrors({});
     setCurrentItem(null);
@@ -169,15 +179,18 @@ const ItemsAdmin = () => {
       name: currentItem.name,
       category: currentItem.category,
       status: currentItem.status,
-      locationPath: currentItem.locationPath || '',
-      thumbnailUrl: currentItem.thumbnailUrl || '',
-      amazonLink: currentItem.amazonLink || '',
-      modelPath: currentItem.modelPath || '',
+      labId: currentItem.labId || "",
+      locationPath: currentItem.locationPath || "",
+      thumbnailUrl: currentItem.thumbnailUrl || "",
+      amazonLink: currentItem.amazonLink || "",
+      modelPath: currentItem.modelPath || "",
       scale: currentItem.scale || 1.0,
-      labId: currentItem.labId || '',
-      x: currentItem.x !== undefined ? currentItem.x : '',
-      y: currentItem.y !== undefined ? currentItem.y : '',
-      z: currentItem.z !== undefined ? currentItem.z : '',
+      posX: currentItem.posX !== undefined ? currentItem.posX : "",
+      posY: currentItem.posY !== undefined ? currentItem.posY : "",
+      posZ: currentItem.posZ !== undefined ? currentItem.posZ : "",
+      rotX: currentItem.rotX !== undefined ? currentItem.rotX : "",
+      rotY: currentItem.rotY !== undefined ? currentItem.rotY : "",
+      rotZ: currentItem.rotZ !== undefined ? currentItem.rotZ : "",
     });
     setFormErrors({});
     handleMenuClose();
@@ -205,22 +218,35 @@ const ItemsAdmin = () => {
     const errors = {};
 
     if (!formData.id.trim()) {
-      errors.id = 'QR Code is required';
+      errors.id = "QR Code is required";
     }
     if (!formData.name.trim()) {
-      errors.name = 'Name is required';
+      errors.name = "Name is required";
     }
     if (!formData.category) {
-      errors.category = 'Category is required';
+      errors.category = "Category is required";
     }
 
     // Validate 3D fields if model path is provided
     if (formData.modelPath) {
       if (!formData.labId) {
-        errors.labId = 'Lab is required when 3D model is provided';
+        errors.labId = "Lab is required when 3D model is provided";
       }
-      if (formData.x === '' || formData.y === '' || formData.z === '') {
-        errors.coordinates = 'X, Y, Z coordinates are required when 3D model is provided';
+      if (
+        formData.posX === "" ||
+        formData.posY === "" ||
+        formData.posZ === ""
+      ) {
+        errors.coordinates =
+          "X, Y, Z position coordinates are required when 3D model is provided";
+      }
+      if (
+        formData.rotX === "" ||
+        formData.rotY === "" ||
+        formData.rotZ === ""
+      ) {
+        errors.coordinates =
+          "X, Y, Z rotation coordinates are required when 3D model is provided";
       }
     }
 
@@ -245,24 +271,27 @@ const ItemsAdmin = () => {
         modelPath: formData.modelPath || null,
         scale: formData.scale ? parseFloat(formData.scale) : null,
         labId: formData.labId || null,
-        x: formData.x !== '' ? parseFloat(formData.x) : null,
-        y: formData.y !== '' ? parseFloat(formData.y) : null,
-        z: formData.z !== '' ? parseFloat(formData.z) : null,
+        posX: formData.posX !== "" ? parseFloat(formData.posX) : null,
+        posY: formData.posY !== "" ? parseFloat(formData.posY) : null,
+        posZ: formData.posZ !== "" ? parseFloat(formData.posZ) : null,
+        rotX: formData.rotX !== "" ? parseFloat(formData.rotX) : null,
+        rotY: formData.rotY !== "" ? parseFloat(formData.rotY) : null,
+        rotZ: formData.rotZ !== "" ? parseFloat(formData.rotZ) : null,
       };
 
       if (currentItem) {
         await updateEquipment(currentItem.id, itemData);
-        showSnackbar('Item updated successfully', 'success');
+        showSnackbar("Item updated successfully", "success");
       } else {
         await createEquipment(itemData);
-        showSnackbar('Item created successfully', 'success');
+        showSnackbar("Item created successfully", "success");
       }
 
       fetchItems();
       handleDialogClose();
     } catch (error) {
-      console.error('Failed to save item:', error);
-      showSnackbar(error.message || 'Failed to save item', 'error');
+      console.error("Failed to save item:", error);
+      showSnackbar(error.message || "Failed to save item", "error");
     }
   };
 
@@ -271,16 +300,16 @@ const ItemsAdmin = () => {
 
     try {
       await deleteEquipment(itemToDelete.id);
-      showSnackbar('Item deleted successfully', 'success');
+      showSnackbar("Item deleted successfully", "success");
       fetchItems();
       handleDeleteDialogClose();
     } catch (error) {
-      console.error('Failed to delete item:', error);
-      showSnackbar(error.message || 'Failed to delete item', 'error');
+      console.error("Failed to delete item:", error);
+      showSnackbar(error.message || "Failed to delete item", "error");
     }
   };
 
-  const showSnackbar = (message, severity = 'success') => {
+  const showSnackbar = (message, severity = "success") => {
     setSnackbar({ open: true, message, severity });
   };
 
@@ -290,19 +319,22 @@ const ItemsAdmin = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'available':
-        return 'success';
-      case 'checked_out':
-        return 'warning';
-      case 'broken':
-        return 'error';
+      case "available":
+        return "success";
+      case "checked_out":
+        return "warning";
+      case "broken":
+        return "error";
       default:
-        return 'default';
+        return "default";
     }
   };
 
   const getStatusLabel = (status) => {
-    return status.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+    return status
+      .split("_")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
   };
 
   const filteredItems = items;
@@ -310,7 +342,14 @@ const ItemsAdmin = () => {
   return (
     <Box>
       {/* Header */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 3,
+        }}
+      >
         <Box>
           <Typography variant="h5" component="h1" sx={{ fontWeight: 600 }}>
             Items Management
@@ -331,14 +370,16 @@ const ItemsAdmin = () => {
 
       {/* Toolbar */}
       <Card sx={{ mb: 2 }}>
-        <Toolbar sx={{ gap: 2, flexWrap: 'wrap', py: 2 }}>
+        <Toolbar sx={{ gap: 2, flexWrap: "wrap", py: 2 }}>
           <TextField
             placeholder="Search items..."
             size="small"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             InputProps={{
-              startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} />,
+              startAdornment: (
+                <SearchIcon sx={{ mr: 1, color: "text.secondary" }} />
+              ),
             }}
             sx={{ minWidth: 250 }}
             aria-label="Search items"
@@ -395,17 +436,21 @@ const ItemsAdmin = () => {
       {loading ? (
         <Typography>Loading items...</Typography>
       ) : (
-        <Paper sx={{ width: '100%', overflow: 'hidden' }}>
+        <Paper sx={{ width: "100%", overflow: "hidden" }}>
           <TableContainer>
             <Table aria-label="Items table">
               <TableHead>
                 <TableRow>
                   <TableCell padding="checkbox">
                     <Checkbox
-                      indeterminate={selected.length > 0 && selected.length < items.length}
-                      checked={items.length > 0 && selected.length === items.length}
+                      indeterminate={
+                        selected.length > 0 && selected.length < items.length
+                      }
+                      checked={
+                        items.length > 0 && selected.length === items.length
+                      }
                       onChange={handleSelectAll}
-                      inputProps={{ 'aria-label': 'Select all items' }}
+                      inputProps={{ "aria-label": "Select all items" }}
                     />
                   </TableCell>
                   <TableCell>QR Code</TableCell>
@@ -421,7 +466,9 @@ const ItemsAdmin = () => {
                 {filteredItems.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={8} align="center" sx={{ py: 4 }}>
-                      <Typography color="text.secondary">No items found</Typography>
+                      <Typography color="text.secondary">
+                        No items found
+                      </Typography>
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -437,14 +484,19 @@ const ItemsAdmin = () => {
                           <Checkbox
                             checked={selected.includes(item.id)}
                             onChange={() => handleSelect(item.id)}
-                            inputProps={{ 'aria-label': `Select ${item.name}` }}
+                            inputProps={{ "aria-label": `Select ${item.name}` }}
                           />
                         </TableCell>
                         <TableCell>{item.id}</TableCell>
-                        <TableCell sx={{ fontWeight: 500 }}>{item.name}</TableCell>
+                        <TableCell sx={{ fontWeight: 500 }}>
+                          {item.name}
+                        </TableCell>
                         <TableCell>{item.category}</TableCell>
                         <TableCell>
-                          {item.labId ? labs.find((l) => l.id === item.labId)?.name || item.labId : '-'}
+                          {item.labId
+                            ? labs.find((l) => l.id === item.labId)?.name ||
+                              item.labId
+                            : "-"}
                         </TableCell>
                         <TableCell>
                           <Chip
@@ -463,7 +515,7 @@ const ItemsAdmin = () => {
                               variant="outlined"
                             />
                           ) : (
-                            '-'
+                            "-"
                           )}
                         </TableCell>
                         <TableCell align="right">
@@ -512,8 +564,13 @@ const ItemsAdmin = () => {
       </Menu>
 
       {/* Add/Edit Dialog */}
-      <Dialog open={dialogOpen} onClose={handleDialogClose} maxWidth="md" fullWidth>
-        <DialogTitle>{currentItem ? 'Edit Item' : 'Add New Item'}</DialogTitle>
+      <Dialog
+        open={dialogOpen}
+        onClose={handleDialogClose}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>{currentItem ? "Edit Item" : "Add New Item"}</DialogTitle>
         <DialogContent>
           <Stack spacing={3} sx={{ mt: 1 }}>
             {/* Basic Information */}
@@ -528,9 +585,13 @@ const ItemsAdmin = () => {
                     fullWidth
                     required
                     value={formData.id}
-                    onChange={(e) => setFormData({ ...formData, id: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, id: e.target.value })
+                    }
                     error={!!formErrors.id}
-                    helperText={formErrors.id || 'Unique identifier for the item'}
+                    helperText={
+                      formErrors.id || "Unique identifier for the item"
+                    }
                     disabled={!!currentItem}
                   />
                 </Grid>
@@ -540,7 +601,9 @@ const ItemsAdmin = () => {
                     fullWidth
                     required
                     value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, name: e.target.value })
+                    }
                     error={!!formErrors.name}
                     helperText={formErrors.name}
                   />
@@ -551,7 +614,9 @@ const ItemsAdmin = () => {
                     <Select
                       value={formData.category}
                       label="Category"
-                      onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, category: e.target.value })
+                      }
                     >
                       {ITEM_CATEGORIES.map((cat) => (
                         <MenuItem key={cat} value={cat}>
@@ -567,7 +632,9 @@ const ItemsAdmin = () => {
                     <Select
                       value={formData.status}
                       label="Status"
-                      onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, status: e.target.value })
+                      }
                     >
                       {ITEM_STATUSES.map((status) => (
                         <MenuItem key={status} value={status}>
@@ -582,7 +649,9 @@ const ItemsAdmin = () => {
                     label="Location Path"
                     fullWidth
                     value={formData.locationPath}
-                    onChange={(e) => setFormData({ ...formData, locationPath: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, locationPath: e.target.value })
+                    }
                     placeholder="e.g., Senior Lab › North Bench"
                   />
                 </Grid>
@@ -591,8 +660,10 @@ const ItemsAdmin = () => {
                     label="Thumbnail URL"
                     fullWidth
                     value={formData.thumbnailUrl}
-                    onChange={(e) => setFormData({ ...formData, thumbnailUrl: e.target.value })}
-                    placeholder="/images/item.png"
+                    onChange={(e) =>
+                      setFormData({ ...formData, thumbnailUrl: e.target.value })
+                    }
+                    placeholder="/images/items/item.png"
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
@@ -600,7 +671,9 @@ const ItemsAdmin = () => {
                     label="Amazon Link"
                     fullWidth
                     value={formData.amazonLink}
-                    onChange={(e) => setFormData({ ...formData, amazonLink: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, amazonLink: e.target.value })
+                    }
                     placeholder="https://amazon.com/..."
                   />
                 </Grid>
@@ -621,7 +694,9 @@ const ItemsAdmin = () => {
                     <Select
                       value={formData.labId}
                       label="Lab"
-                      onChange={(e) => setFormData({ ...formData, labId: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, labId: e.target.value })
+                      }
                     >
                       <MenuItem value="">
                         <em>None</em>
@@ -633,7 +708,11 @@ const ItemsAdmin = () => {
                       ))}
                     </Select>
                     {formErrors.labId && (
-                      <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 2 }}>
+                      <Typography
+                        variant="caption"
+                        color="error"
+                        sx={{ mt: 0.5, ml: 2 }}
+                      >
                         {formErrors.labId}
                       </Typography>
                     )}
@@ -645,7 +724,9 @@ const ItemsAdmin = () => {
                     fullWidth
                     type="number"
                     value={formData.scale}
-                    onChange={(e) => setFormData({ ...formData, scale: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, scale: e.target.value })
+                    }
                     placeholder="1.0"
                     inputProps={{ step: 0.1, min: 0.1 }}
                   />
@@ -655,18 +736,22 @@ const ItemsAdmin = () => {
                     label="Model Path"
                     fullWidth
                     value={formData.modelPath}
-                    onChange={(e) => setFormData({ ...formData, modelPath: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, modelPath: e.target.value })
+                    }
                     placeholder="/models/items/drone.glb"
                     helperText="Path to 3D model file (.glb)"
                   />
                 </Grid>
                 <Grid item xs={12} sm={4}>
                   <TextField
-                    label="X Coordinate"
+                    label="X Position Coordinate"
                     fullWidth
                     type="number"
-                    value={formData.x}
-                    onChange={(e) => setFormData({ ...formData, x: e.target.value })}
+                    value={formData.posX}
+                    onChange={(e) =>
+                      setFormData({ ...formData, posX: e.target.value })
+                    }
                     placeholder="0"
                     inputProps={{ step: 0.1 }}
                     error={!!formErrors.coordinates}
@@ -674,11 +759,13 @@ const ItemsAdmin = () => {
                 </Grid>
                 <Grid item xs={12} sm={4}>
                   <TextField
-                    label="Y Coordinate"
+                    label="Y Position Coordinate"
                     fullWidth
                     type="number"
-                    value={formData.y}
-                    onChange={(e) => setFormData({ ...formData, y: e.target.value })}
+                    value={formData.posY}
+                    onChange={(e) =>
+                      setFormData({ ...formData, posY: e.target.value })
+                    }
                     placeholder="0"
                     inputProps={{ step: 0.1 }}
                     error={!!formErrors.coordinates}
@@ -686,11 +773,55 @@ const ItemsAdmin = () => {
                 </Grid>
                 <Grid item xs={12} sm={4}>
                   <TextField
-                    label="Z Coordinate"
+                    label="Z Position Coordinate"
                     fullWidth
                     type="number"
-                    value={formData.z}
-                    onChange={(e) => setFormData({ ...formData, z: e.target.value })}
+                    value={formData.posZ}
+                    onChange={(e) =>
+                      setFormData({ ...formData, posZ: e.target.value })
+                    }
+                    placeholder="0"
+                    inputProps={{ step: 0.1 }}
+                    error={!!formErrors.coordinates}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={4}>
+                  <TextField
+                    label="X Roation Coordinate"
+                    fullWidth
+                    type="number"
+                    value={formData.rotX}
+                    onChange={(e) =>
+                      setFormData({ ...formData, rotX: e.target.value })
+                    }
+                    placeholder="0"
+                    inputProps={{ step: 0.1 }}
+                    error={!!formErrors.coordinates}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={4}>
+                  <TextField
+                    label="Y Rotation Coordinate"
+                    fullWidth
+                    type="number"
+                    value={formData.rotY}
+                    onChange={(e) =>
+                      setFormData({ ...formData, rotY: e.target.value })
+                    }
+                    placeholder="0"
+                    inputProps={{ step: 0.1 }}
+                    error={!!formErrors.coordinates}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={4}>
+                  <TextField
+                    label="Z Rotation Coordinate"
+                    fullWidth
+                    type="number"
+                    value={formData.rotZ}
+                    onChange={(e) =>
+                      setFormData({ ...formData, rotZ: e.target.value })
+                    }
                     placeholder="0"
                     inputProps={{ step: 0.1 }}
                     error={!!formErrors.coordinates}
@@ -710,7 +841,7 @@ const ItemsAdmin = () => {
         <DialogActions>
           <Button onClick={handleDialogClose}>Cancel</Button>
           <Button onClick={handleSubmit} variant="contained">
-            {currentItem ? 'Update' : 'Create'}
+            {currentItem ? "Update" : "Create"}
           </Button>
         </DialogActions>
       </Dialog>
@@ -720,8 +851,8 @@ const ItemsAdmin = () => {
         <DialogTitle>Delete Item</DialogTitle>
         <DialogContent>
           <Typography>
-            Are you sure you want to delete <strong>{itemToDelete?.name}</strong>?
-            This action cannot be undone.
+            Are you sure you want to delete{" "}
+            <strong>{itemToDelete?.name}</strong>? This action cannot be undone.
           </Typography>
         </DialogContent>
         <DialogActions>
@@ -737,9 +868,13 @@ const ItemsAdmin = () => {
         open={snackbar.open}
         autoHideDuration={4000}
         onClose={handleSnackbarClose}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       >
-        <Alert onClose={handleSnackbarClose} severity={snackbar.severity} sx={{ width: '100%' }}>
+        <Alert
+          onClose={handleSnackbarClose}
+          severity={snackbar.severity}
+          sx={{ width: "100%" }}
+        >
           {snackbar.message}
         </Alert>
       </Snackbar>
