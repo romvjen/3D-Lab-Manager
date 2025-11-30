@@ -9,6 +9,39 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Fetch user profile with role from profiles table
+  const fetchUserProfile = async (authUser) => {
+    if (!authUser) {
+      setUser(null);
+      return;
+    }
+
+    try {
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', authUser.id)
+        .single();
+
+      if (error) {
+        console.error('Error fetching profile:', error);
+        // Still set auth user even if profile fetch fails
+        setUser(authUser);
+        return;
+      }
+
+      // Merge auth user with profile data (including role)
+      setUser({
+        ...authUser,
+        role: profile?.role || 'student',
+        fullName: profile?.full_name,
+      });
+    } catch (error) {
+      console.error('Error in fetchUserProfile:', error);
+      setUser(authUser);
+    }
+  };
+
   // Restore session on refresh
   useEffect(() => {
     const init = async () => {
@@ -16,16 +49,16 @@ export const AuthProvider = ({ children }) => {
         data: { session },
       } = await supabase.auth.getSession();
 
-      setUser(session?.user || null);
+      await fetchUserProfile(session?.user || null);
       setLoading(false);
     };
 
     init();
 
     // Listen for login/logout
-    const { data: listener } = supabase.auth.onAuthStateChange((_, session) =>
-      setUser(session?.user || null)
-    );
+    const { data: listener } = supabase.auth.onAuthStateChange(async (_, session) => {
+      await fetchUserProfile(session?.user || null);
+    });
 
     return () => listener.subscription.unsubscribe();
   }, []);
