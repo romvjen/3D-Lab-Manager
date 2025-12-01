@@ -57,15 +57,14 @@ function Home() {
   // Changelog data for "What's New" section
   const changelog = [
     {
-      version: "Sprint 2.0",
-      date: "October 2025",
+      version: "Sprint 4.0",
+      date: "December 2025",
       items: [
         "Initial release of 3D Lab Manager",
-        "3D Map Viewer",
-        "Complete equipment inventory system",
+        "3D map viewer",
+        "Equipment inventory system",
         "QR code scanning functionality",
         "Responsive design for mobile and desktop",
-        "Full accessibility compliance (WCAG 2.1 AA)",
       ],
     },
   ];
@@ -100,7 +99,7 @@ function Home() {
         </Typography>
 
         <Chip
-          label="Sprint 1"
+          label="Sprint 4"
           color="primary"
           variant="outlined"
           sx={{ mb: 3 }}
